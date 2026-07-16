@@ -95,6 +95,27 @@ SemVer compatibility guarantee.
    as the notes:
    `gh release create vX.Y.Z --title vX.Y.Z --notes-file <that-section>`.
 
+## The module path
+
+The module path is `github.com/ZviBaratz/fresco`, with a mixed-case owner
+segment, and that is **deliberate** (roadmap #19). Go import paths are
+case-sensitive, but mixed case is fully supported everywhere it matters: the
+module proxy and the on-disk cache case-encode uppercase letters (fresco is
+stored under `github.com/!zvi!baratz/fresco`), so `go get github.com/ZviBaratz/fresco`
+and the import statement work verbatim on every platform, including
+case-insensitive filesystems. It is a well-trodden path — `Azure/azure-sdk-for-go`
+is a widely used mixed-case module.
+
+We keep it because it matches the GitHub owner's canonical casing, and moving to
+a lowercase path would buy only cosmetic conformance at a real cost: the proxy and
+checksum database key releases by exact path, so a rename splits the version
+history (`v0.1.0`/`v0.2.0` would live under the old path) and breaks every
+existing import. Lowercasing only the `go.mod` `module` directive while leaving
+the repository at `ZviBaratz/fresco` would technically resolve — GitHub serves
+clone URLs case-insensitively — but it splits the history just the same and adds a
+permanent repo-vs-import casing mismatch, so it is not worth doing either. If you
+import fresco, copy the path as written above.
+
 ## Reporting bugs & proposing ideas
 
 Use the [issue templates](https://github.com/ZviBaratz/fresco/issues/new/choose).
