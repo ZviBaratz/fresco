@@ -9,6 +9,16 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Added
+
+- **`Palette.Validate() error`** — an advisory, opt-in check that reports any
+  anchor that is not a canonical hex colour (`"#rgb"` or `"#rrggbb"`), naming
+  every offending field (#18). `Render` is unchanged: it still never errors or
+  panics on a malformed palette — each bad anchor degrades to a documented
+  fallback, so the exactly-h×w-cells contract always holds. `Validate` is
+  deliberately stricter than the renderer's parser, so it flags typos (a missing
+  `#`, a wrong length, trailing garbage) the renderer would otherwise paint.
+
 ### Changed
 
 - **`Options.Profile` is now a fresco-owned `ColorProfile` enum** instead of
