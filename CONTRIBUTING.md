@@ -62,6 +62,39 @@ depends on the ambient terminal.
 | `rain.go`, `tunnel.go`, `ripple.go`, `galaxy.go` | The individual field generators. |
 | `cmd/fresco-demo` | The runnable demo that cycles every variant. |
 
+## Versioning & releases
+
+fresco follows [Semantic Versioning](https://semver.org/), with the usual pre-1.0
+latitude.
+
+**What `v0.x` promises.** While the major version is `0`, the public API is still
+settling:
+
+- **Patch** releases (`0.y.Z`) are bug fixes, docs, and internal changes — no API
+  changes.
+- **Minor** releases (`0.Y.0`) may add features and, where justified, make a
+  breaking API change. Pre-1.0, breaking changes ride minor bumps; each one gets
+  its own reasoned issue and a `Changed` / `Removed` entry in the changelog.
+- The **core contract holds at every version**: `Render` is pure over its inputs
+  and returns exactly `h` lines of exactly `w` visible cells.
+
+**What triggers `v1.0`.** Once the public surface — `Options`, `Palette`, the
+variant set, and the render entry points — has settled and been validated against
+a real downstream consumer (see the `v0.3.0` milestone in the
+[roadmap](docs/ROADMAP.md)), we'll commit to it with `v1.0.0` and the standard
+SemVer compatibility guarantee.
+
+**How a release is cut.** Releases are tagged from `main`:
+
+1. Move the accumulated `## [Unreleased]` entries in [`CHANGELOG.md`](CHANGELOG.md)
+   into a new `## [x.y.z] - YYYY-MM-DD` section, and update the compare links at
+   the foot of the file.
+2. Land that as a PR (e.g. `docs: release vX.Y.Z`) and merge to `main`.
+3. Tag and push: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
+4. Publish the GitHub Release from the tag, using that version's changelog section
+   as the notes:
+   `gh release create vX.Y.Z --title vX.Y.Z --notes-file <that-section>`.
+
 ## Reporting bugs & proposing ideas
 
 Use the [issue templates](https://github.com/ZviBaratz/fresco/issues/new/choose).
