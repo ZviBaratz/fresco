@@ -1,5 +1,7 @@
 # fresco
 
+[![CI](https://github.com/ZviBaratz/fresco/actions/workflows/ci.yml/badge.svg)](https://github.com/ZviBaratz/fresco/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ZviBaratz/fresco/graph/badge.svg)](https://codecov.io/gh/ZviBaratz/fresco)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ZviBaratz/fresco.svg)](https://pkg.go.dev/github.com/ZviBaratz/fresco)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -111,6 +113,12 @@ type Palette struct {
 (truecolor / 256 / 16 / none). Set `Options.Profile` to pin it — useful for
 tests, for writing to a non-TTY, or for forcing colour when piping. With it set,
 `Render` is pure over its inputs regardless of the ambient terminal.
+
+## Roadmap
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for where fresco is headed — the
+`v0.2.0 — Open the doors` and `v0.3.0 — Refine & prove` milestones — and for
+issues labelled [`good first issue`](https://github.com/ZviBaratz/fresco/labels/good%20first%20issue).
 
 ## Origin
 
