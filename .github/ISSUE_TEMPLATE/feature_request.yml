@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an improvement to the engine or its API.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposing a whole new **variant** (a new field)? Use the
+        [🎆 Propose a new variant](https://github.com/ZviBaratz/fresco/issues/new?template=new_variant.yml)
+        template instead — it asks the right questions.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The use case or itch, not just the proposed solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you add or change? Sketch the API if it touches the surface.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Anything you ruled out, and why.
+    validations:
+      required: false

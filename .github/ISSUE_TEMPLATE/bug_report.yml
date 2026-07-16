@@ -1,0 +1,48 @@
+name: Bug report
+description: Something fresco renders wrong, panics, or misbehaves.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! fresco is deterministic — the same
+        `(width, height, frame, Options)` always yields the same bytes — so a
+        precise repro usually pins the problem immediately.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+      placeholder: The galaxy variant renders a blank pane at width 8...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: >
+        The exact call, ideally the smallest one. Include the width, height,
+        frame, and Options (Palette, Variant, FocalRow, LumRange, Profile).
+      render: go
+      placeholder: |
+        fresco.Render(8, 4, 0, fresco.Options{
+            Palette: fresco.Palette{A0: "#f7768e", A1: "#bb9af7", A2: "#7aa2f7", A3: "#7dcfff", Highlight: "#c0caf5"},
+            Variant: fresco.Galaxy,
+        })
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: fresco version
+      description: Module version or commit SHA (`go list -m github.com/ZviBaratz/fresco`).
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Go version, OS, terminal, and color profile (truecolor / 256 / 16 / none) if relevant.
+      placeholder: go1.25, macOS 15, iTerm2, truecolor
+    validations:
+      required: false
