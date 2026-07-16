@@ -378,6 +378,8 @@ func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, op
 }
 
 // smoothstep is the classic Hermite ease between edges a and b, clamped to [0,1].
+//
+//nolint:unparam // a is 0 at every current call; the two-edge smoothstep(edge0, edge1, x) signature is the standard one and is kept deliberately.
 func smoothstep(a, b, x float64) float64 {
 	if a == b {
 		if x < a {
@@ -399,6 +401,7 @@ func clamp01(x float64) float64 {
 	return x
 }
 
+//nolint:unparam // lo is 0 at every current call; the general (v, lo, hi) clamp signature is kept on purpose.
 func clampInt(v, lo, hi int) int {
 	if v < lo {
 		return lo

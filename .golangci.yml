@@ -1,0 +1,33 @@
+version: "2"
+
+# fresco keeps the default linters (errcheck, govet, ineffassign, staticcheck,
+# unused) and adds a few that pay their way on a small, hot-path rendering
+# library. Formatting is enforced separately by the formatters block.
+linters:
+  enable:
+    - misspell    # catches typos in the many prose comments
+    - unconvert   # redundant type conversions
+    - unparam     # unused function parameters / always-same returns
+    - revive      # a curated set of style checks (see settings)
+  settings:
+    revive:
+      rules:
+        - name: exported
+        - name: blank-imports
+        - name: context-as-argument
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: superfluous-else
+        - name: time-naming
+        - name: unreachable-code
+        - name: var-declaration
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
