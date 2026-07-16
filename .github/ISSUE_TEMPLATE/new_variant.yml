@@ -1,0 +1,74 @@
+name: "🎆 Propose a new variant"
+description: Pitch a new field for the roster (rain, tunnel, ripple, galaxy, ...).
+title: "variant: "
+labels: ["enhancement", "area:api"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A new variant is the contribution fresco most wants. Every shipped field
+        has a one-line premise and a deliberate shading policy — this template
+        walks you through both. See the [variant-authoring guide](https://github.com/ZviBaratz/fresco/blob/main/docs/variants.md)
+        for how one is built and tested.
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      description: The pinnable name callers would use (lowercase, one word). e.g. "aurora".
+      placeholder: aurora
+    validations:
+      required: true
+  - type: textarea
+    id: premise
+    attributes:
+      label: The motion premise
+      description: >
+        In a sentence or two: what moves, and why does it read as motion rather
+        than as a static pattern? The existing fields each have a distinct one —
+        rain falls, the tunnel recedes, ripples expand, the galaxy turns.
+    validations:
+      required: true
+  - type: dropdown
+    id: stars
+    attributes:
+      label: Fixed starfield?
+      description: >
+        Does the field keep the fixed twinkling starfield over it? Ripple does
+        (a still pool reflects a still sky); the moving fields drop it because a
+        fixed point in a moving field reads as a stuck pixel.
+      options:
+        - "No — motion in the field would fight fixed points"
+        - "Yes — the field is calm/empty enough to want them"
+        - "Not sure yet"
+    validations:
+      required: true
+  - type: dropdown
+    id: lumrange
+    attributes:
+      label: Shading — how does brightness split?
+      description: >
+        `lumRange` is the share of a cell's brightness carried by its colour's
+        luminance rather than by its glyph's density. 0 = all density (a dim
+        cell is a *small* one); 1 = all colour (a constant-weight glyph). Most
+        fields with a gradient to render sit high (0.75–1).
+      options:
+        - "High (~1) — smooth gradient, brightness in the colour"
+        - "Mid (~0.75) — density carries texture, colour carries brightness"
+        - "Low (~0) — stipple; dim means small"
+        - "Not sure yet"
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References / inspiration
+      description: Images, demos, math, or prior art that capture the look you're after.
+    validations:
+      required: false
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd like to implement this myself (the guide will walk you through it)
+          required: false
