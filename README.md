@@ -3,6 +3,10 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/ZviBaratz/fresco.svg)](https://pkg.go.dev/github.com/ZviBaratz/fresco)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+<p align="center">
+  <img src="docs/demo.gif" width="640" alt="fresco cycling through its four variants — rain, tunnel, ripple, and galaxy">
+</p>
+
 **Generative, free-running animated fields for the terminal.** fresco paints the
 whole pane with a slow-drifting, theme-coloured procedural field — a nebula, a
 receding tunnel, a pool of ripples, a turning galaxy — as plain ANSI text. It is

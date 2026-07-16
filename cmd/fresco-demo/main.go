@@ -49,7 +49,15 @@ func main() {
 		os.Exit(0)
 	}()
 
-	const secondsPerVariant = 6
+	// secondsPerVariant is how long each variant holds before the next. The env
+	// override lets the demo recording (.github/vhs/demo.tape) run a quicker tour
+	// without changing the interactive default.
+	secondsPerVariant := 6
+	if s := os.Getenv("FRESCO_DEMO_SECONDS_PER_VARIANT"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n > 0 {
+			secondsPerVariant = n
+		}
+	}
 	const fps = 30
 	variants := fresco.Variants()
 
