@@ -181,6 +181,8 @@ var tunnelTestAt = splashTunnelAtFor(tunRefD)
 // every caller that uses it for geometry: sin(0) == 0, so the vanishing point's
 // drift vanishes and the field is exactly centred on the focal point, which is
 // what lets a test name an angle and mean it.
+//
+//nolint:unparam // phase is 0 at every current caller by design (see above); the parameter names the axis and keeps the point-fn shape.
 func tunnelPolarAt(r, theta, phase float64) (val, aux float64) {
 	return tunnelTestAt(0, 0, r*math.Cos(theta), r*math.Sin(theta), phase)
 }
