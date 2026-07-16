@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"math"

@@ -1,0 +1,14 @@
+# Binaries and build output
+/bin/
+*.exe
+*.out
+
+# Test & coverage artifacts
+*.test
+coverage.*
+profile.out
+
+# Editor / OS cruft
+.DS_Store
+.idea/
+.vscode/

@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 // Matrix-style digital rain: per-column streams of glyphs falling with bright
 // heads and fading tails, layered at three depths for parallax.
@@ -10,7 +10,7 @@ package splash
 // is about the *step* between a head and its tail rather than about either one.
 //
 // It is also the field that exposed the text clearing, and eventually retired it.
-// That clearing blanked an ellipse of field around the wordmark: an organic field
+// That clearing blanked an ellipse of field around the focal point: an organic field
 // hid it by fading into it, but rain's streams are long, straight and vertical,
 // so a blanked row reads as a band cut clean through them. Rain opted out, the
 // tunnel and ripple did the same for their own geometry, and V5 retired the last

@@ -1,15 +1,15 @@
-package splash
+package fresco
 
 // The splash variant vocabulary and per-variant Pass-2 policy: which field
 // generators exist, what users call them, and how each shades. Selection (which
-// variant is active) and the dev-only ATRIUM_SPLASH_* env overrides live in
-// package ui, which drives this package through Render. Kept apart from field.go
+// variant is active) and any override affordance live on the caller's side,
+// which drives this package through Render. Kept apart from field.go
 // so that file is only the noise core and the renderer — this is the part that
 // changes whenever a variant is added, retired, or renamed.
 
-// Variant selects the field generator + glyph technique. Package ui pins one
-// (or keeps a random per-launch rotation) and passes it in through Options; the
-// dev-only ATRIUM_SPLASH_VARIANT override, also resolved in ui, can trump that.
+// Variant selects the field generator + glyph technique. The caller pins one
+// (or keeps a random per-launch rotation) and passes it in through Options; a
+// caller-side override affordance can trump that.
 type Variant int
 
 const (
@@ -19,11 +19,11 @@ const (
 	// own to spend (see buildRainRamp).
 	//
 	// It is also the fallback: a variant with no case in splashFieldAt or ops
-	// renders as rain, and package ui resolves an unrecognized override name to
+	// renders as rain, and a caller resolves an unrecognized override name to
 	// it too.
 	Rain Variant = iota
 	// Tunnel ("g") is a textured wall flying past a vanishing point that sits on
-	// the wordmark: screen position maps to (depth, angle), so a plain noise
+	// the focal point: screen position maps to (depth, angle), so a plain noise
 	// lookup becomes an infinite corridor. The roster's depth entry — z-fog
 	// carries distance in luminance, and hue bands by depth into coloured rings
 	// receding down the wall.
@@ -33,7 +33,7 @@ const (
 	// interfere where they cross. The roster's event entry — the only field with
 	// a birth and a death in it rather than a steady state.
 	Ripple
-	// Galaxy ("i") is an inclined spiral turning around the wordmark: a soft
+	// Galaxy ("i") is an inclined spiral turning around the focal point: a soft
 	// bright bulge, arms mottled with turbulence and star-knots, a dust lane
 	// silhouetting the disk's near edge, warm at the core and cool at the rim. The
 	// tunnel's single-object sibling — brightness is the whole subject, and the
@@ -61,7 +61,7 @@ var variantNames = map[string]Variant{
 	"tunnel": Tunnel,
 }
 
-// Variants lists the shipped variants — the pool package ui's random mode draws
+// Variants lists the shipped variants — the pool a caller's random rotation draws
 // from. The order is the rotation order; the returned slice is a fresh copy, so
 // callers cannot mutate the pool.
 func Variants() []Variant {
@@ -80,8 +80,8 @@ func (v Variant) String() string {
 }
 
 // ParseVariant resolves a pinnable pattern name to its variant. It knows only
-// the user-facing names, not the dev letters (f/g/h) — those are an Atrium
-// affordance package ui layers on top. The bool is false for an unknown name.
+// the user-facing names, not the dev letters (f/g/h) — those are a caller-side
+// affordance layered on top. The bool is false for an unknown name.
 func ParseVariant(s string) (Variant, bool) {
 	v, ok := variantNames[s]
 	return v, ok
@@ -118,7 +118,7 @@ type splashOps struct {
 }
 
 // ops returns a variant's Pass-2 policy: the shipped per-variant literal, before
-// the dev-only lumRange override package ui applies on top (see Options.LumRange
+// the lumRange override a caller applies on top (see Options.LumRange
 // and Render).
 //
 // Every variant states both fields as a literal, and the roster table

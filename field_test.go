@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"math"
@@ -221,7 +221,7 @@ func TestRenderProfileOverridesAmbient(t *testing.T) {
 }
 
 // TestRenderNilProfileDefersToAmbient guards the default: a nil Profile keeps
-// the auto-detect behavior package ui relies on, tracking the ambient profile
+// the auto-detect behavior a caller relies on, tracking the ambient profile
 // in both directions.
 func TestRenderNilProfileDefersToAmbient(t *testing.T) {
 	pal := splashTestPalette()

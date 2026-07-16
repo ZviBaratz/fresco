@@ -1,12 +1,12 @@
-package splash
+package fresco
 
 import "math"
 
 // The galaxy is the roster's second single-object field, and the tunnel's
-// structural sibling: one thing centred on the wordmark, scaled to the pane so a
+// structural sibling: one thing centred on the focal point, scaled to the pane so a
 // bigger window shows more of the *same* galaxy rather than more galaxies, with
 // its hue coming from its own radial gradient rather than from screen position.
-// Where the tunnel is a corridor receding into the wordmark, the galaxy is an
+// Where the tunnel is a corridor receding into the focal point, the galaxy is an
 // inclined spiral turning around it.
 //
 // Three things about it are traps rather than taste, and all are commented where

@@ -1,10 +1,9 @@
-// Package splash renders Atrium's animated empty-state splash field: a
-// slow-drifting, theme-coloured pattern that appears to emanate from a focal
+// Package fresco is a generative terminal field engine: it renders a
+// slow-drifting, palette-coloured pattern that appears to emanate from a focal
 // row. It is a self-contained engine — the field math, the gradient LUT, and
-// the variant vocabulary — driven by package ui, which owns scene composition
-// (the wordmark/message overlay) and variant selection and calls in through
-// Render.
-package splash
+// the variant vocabulary — that the caller drives through Render. The caller
+// owns any scene composition (an overlay/message on top) and variant selection.
+package fresco
 
 // The splash field generator: deterministic noise primitives and the two-pass
 // renderer built on them. Pass 1 evaluates the raw (pre-contrast) scalar field
@@ -61,7 +60,7 @@ func splashCellHash(col, row int, seed uint32) float64 {
 // in through *nested* avalanche passes (lowbias32-style mixer at each level).
 // Nesting matters: folding the coordinates linearly (x*A ^ y*B) collides on
 // every point-symmetric pair (x,y)/(-x,-y), which would mirror the noise
-// around the field's origin — the wordmark center. Being pure integer math it
+// around the field's origin — the focal point. Being pure integer math it
 // is exact on every architecture, unlike the classic sin-fract hash, whose
 // platform-dependent sin precision can make hash-derived features differ
 // across builds.
@@ -183,13 +182,13 @@ type Options struct {
 	FocalRow int
 	// LumRange, when non-nil, overrides the variant's shipped luminance-range
 	// policy (the split between glyph density and colour luminance); nil keeps
-	// the variant's default. It is how package ui applies the dev-only
-	// ATRIUM_SPLASH_LUMRANGE knob without this package reading the environment.
+	// the variant's default. It is how a caller applies a luminance-range
+	// override without this package reading the environment.
 	LumRange *float64
 	// Profile, when non-nil, pins the color depth Render emits at (truecolor,
 	// 256, 16, or none), independent of the process-global color profile. nil
 	// defers to lipgloss.ColorProfile() — the auto-detected terminal profile —
-	// which is what package ui wants when rendering to a real pane. Setting it
+	// which is what a caller wants when rendering to a real pane. Setting it
 	// makes Render pure over its inputs: the same Options yield the same bytes
 	// regardless of ambient stdout state, which is what a standalone consumer
 	// (and a snapshot test) needs.
@@ -224,11 +223,11 @@ func Render(w, h, frame int, opts Options) string {
 // renderField builds the colored field background: exactly h rows of
 // exactly w visible cells. The field fills the whole pane and softens only near
 // the four borders (an edge vignette), rather than being a single disc inscribed
-// to the shorter axis. The pattern emanates from focalRow — the wordmark's centre
-// row, the origin of the focal-relative coordinates every field is evaluated in —
+// to the shorter axis. The pattern emanates from focalRow — the focal row,
+// the origin of the focal-relative coordinates every field is evaluated in —
 // and a size-relative variant scales itself against the focal-point-to-corner
-// radius (see splashFieldAt), so the field stays visually anchored on the wordmark
-// while still reaching the edges. Pure over its inputs (deterministic,
+// radius (see splashFieldAt), so the field stays visually anchored on the focal
+// point while still reaching the edges. Pure over its inputs (deterministic,
 // snapshot-testable); returns "" on a degenerate pane. ops is the resolved
 // per-variant Pass-2 policy (see Render and Variant.ops), and prof is the
 // resolved color profile the emitted SGR is baked for (see Render).

@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 // Ripple is the roster's event variant: drops fall on a dark pool, each one
 // flashing at impact and expanding into a ring that shifts hue as it ages and

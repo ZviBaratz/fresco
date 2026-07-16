@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"math"
@@ -96,7 +96,7 @@ func TestSplashGalaxyArmLODIsAnisotropic(t *testing.T) {
 // undefined or meaningless at r == 0, and the field routes around them by returning
 // the bulge alone below galCoreFrac·R — delete that guard and the exact centre
 // computes cos(±Inf) == NaN, which clamp01 does not fix (NaN survives every
-// comparison) and which then paints a garbage cell at the wordmark's centre.
+// comparison) and which then paints a garbage cell at the focal row.
 func TestSplashGalaxyCoreIsFinite(t *testing.T) {
 	at := splashFieldAt(Galaxy, 96)
 	const phase = 3 * driftPerFrame

@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"math"
@@ -421,7 +421,7 @@ func rainStopGrid(t *testing.T, w, h, frame int, pal Palette) [][]int {
 // every other test in this file was structurally unable to see.
 //
 // Pass 2 used to carry a radial dim — brightness falling with distance from the
-// wordmark — which *inverts* rain's depth, since a near stream at the rim then
+// focal point — which *inverts* rain's depth, since a near stream at the rim then
 // renders dimmer than a far stream at the middle, and costs every head out there
 // the top of the ramp, the only white on screen and the thing the eye tracks.
 // Rain declined it via splashOps.dimToRim, and the field was declared and then
@@ -464,7 +464,7 @@ func TestRainKeepsItsHeadsAwayFromTheFocalPoint(t *testing.T) {
 				if math.Min(float64(col), float64(w-1-col)) < marginX {
 					continue // inside the horizontal vignette
 				}
-				// Far from the wordmark: where the radial dim bites hardest.
+				// Far from the focal point: where the radial dim bites hardest.
 				if math.Hypot(float64(col)-cx, dy)/maxD < 0.5 {
 					continue
 				}
@@ -480,7 +480,7 @@ func TestRainKeepsItsHeadsAwayFromTheFocalPoint(t *testing.T) {
 	require.Equalf(t, top, best,
 		"the brightest cell more than half-way to the rim reached ramp stop %d, not "+
 			"the top (%d): something between rain's layer table and the emitted cell "+
-			"is dimming heads by their distance from the wordmark. The dim that did "+
+			"is dimming heads by their distance from the focal point. The dim that did "+
 			"this was 42%%, which lands a rim head on stop %d",
 		best, top, rainStopFor(1-0.42*0.5))
 }

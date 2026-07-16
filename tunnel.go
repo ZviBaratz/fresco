@@ -1,9 +1,9 @@
-package splash
+package fresco
 
 import "math"
 
 // The tunnel is the roster's depth variant: a textured wall flying past a
-// vanishing point that sits on the wordmark. Its geometry is the classic
+// vanishing point that sits on the focal point. Its geometry is the classic
 // demoscene mapping — screen position → (depth, angle) = (K/r, atan2(y,x)) —
 // which turns a plain 2D texture lookup into an infinite corridor.
 //
@@ -212,8 +212,8 @@ func splashTunnelFBM(u, v, mipBase float64) float64 {
 // L* 65–80) hue cannot encode distance at all. Luminance is the only cue the eye
 // reads as depth, which is why the fog rides ops.lumRange.
 //
-// The vanishing point sits on the wordmark for free: dx and dy are already
-// focal-relative, so ATRIUM ends up at the end of an infinite corridor with the
+// The vanishing point sits on the focal point for free: dx and dy are already
+// focal-relative, so the focal point ends up at the end of an infinite corridor with the
 // fog's black core around it.
 //
 // It is built for one pane rather than being a plain function, because the
@@ -295,7 +295,7 @@ func splashTunnelAtFor(maxD float64) splashPointFn {
 		// Real z-fog: fog = r/(r+A) is 1/(1+z/D) with z = K/r, and it reaches
 		// exactly 0, so the centre goes black on its own — no envelope term
 		// required. That mattered when Pass 2 had one to offer: it dimmed by
-		// distance from the wordmark, which is the vanishing point, so it would have
+		// distance from the focal point, which is the vanishing point, so it would have
 		// rendered the near wall at the rim dimmer than the far centre. It was
 		// retired in V5 for want of anyone who wanted it.
 		fog := clamp01(tunFogGain * r / (r + fogA))

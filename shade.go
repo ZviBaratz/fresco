@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 // The luminance channel: a second axis the field can shade along, so brightness
 // and glyph identity stop being one instruction.
@@ -157,7 +157,7 @@ const (
 
 // splashShadeParse resolves a gradient stop to a colour the curve can walk down,
 // degrading exactly as buildSplashLUT and rainRampHexAt do rather than emitting
-// broken colour for an unusual theme.
+// broken colour for an unusual palette.
 func splashShadeParse(c lipgloss.Color) colorful.Color {
 	cc, err := colorful.Hex(string(c))
 	if err != nil {

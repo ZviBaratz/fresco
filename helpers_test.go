@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"strings"
@@ -10,8 +10,8 @@ import (
 )
 
 // splashTestPalette is a fixed truecolor palette (tokyo-night's hues) so the
-// splash tests never depend on a live theme. The comments name the theme token
-// each anchor maps from (see ui.splashPalette).
+// splash tests never depend on a live palette. The comments name the source
+// token each anchor maps from (a fixed palette).
 func splashTestPalette() Palette {
 	return Palette{
 		A0:        "#f7768e", // Danger
@@ -23,8 +23,8 @@ func splashTestPalette() Palette {
 }
 
 // testLumRange, when non-nil, overrides the variant's lumRange in the render
-// shims below. It is the test-package replacement for the ui-side
-// ATRIUM_SPLASH_LUMRANGE global that withLumRange used to drive: the engine
+// shims below. It stands in for the override a caller would apply through
+// Options.LumRange that withLumRange used to drive: the engine
 // reads no environment, so the shade tests thread the override through Options.
 var testLumRange *float64
 
@@ -72,8 +72,8 @@ func stripLines(s string) []string {
 	return strings.Split(ansi.Strip(s), "\n")
 }
 
-// centeredFocalRow is the focal row for a pane whose wordmark sits at its
-// vertical centre — which is what ui's splashScene builds, and what keeps the
+// centeredFocalRow is the focal row for a pane whose focal point sits at its
+// vertical centre — which is what a centred caller builds, and what keeps the
 // round-vignette assertions valid.
 func centeredFocalRow(h int) int { return (h - 1) / 2 }
 

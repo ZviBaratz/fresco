@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 import (
 	"math"
@@ -601,7 +601,7 @@ func TestSplashRippleRendersTheFadeNotAThreshold(t *testing.T) {
 // brightness wherever they are.
 //
 // Pass 2 used to offer a radial dim — brightness falling with distance from the
-// wordmark. On the nebula it read as a glow; here it would mean a drop landing
+// focal point. On the nebula it read as a glow; here it would mean a drop landing
 // near the edge of the pane is dimmer than an identical drop landing in the
 // middle, a difference the picture cannot account for, since nothing in this
 // field is further away than anything else. V5 deleted it, along with the fields
@@ -650,6 +650,6 @@ func TestSplashRippleRendersDropsTheSameEverywhere(t *testing.T) {
 	near, far := nearSum/float64(nearN), farSum/float64(farN)
 	require.InDeltaf(t, near, far, 0.5,
 		"identical drops must render identically wherever they land: cells of the same "+
-			"field value mean stop %.2f near the wordmark (%d cells) against %.2f out at "+
+			"field value mean stop %.2f near the focal point (%d cells) against %.2f out at "+
 			"the rim (%d) — an envelope is dimming by radius", near, nearN, far, farN)
 }

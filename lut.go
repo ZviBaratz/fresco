@@ -1,4 +1,4 @@
-package splash
+package fresco
 
 // The gradient LUT and the emitter: the theme-anchored colour ramp the field is
 // painted with, precomputed once per palette, plus the run-coalescing SGR
@@ -18,10 +18,10 @@ import (
 
 // Palette is the splash field's colour input: four warm→cool gradient anchors
 // plus a highlight, each an "#rrggbb" hex string. A0..A3 are the nebula gradient
-// (in Atrium's theme: pink, purple, blue, cyan); consecutive anchors are meant
+// (e.g. pink, purple, blue, cyan); consecutive anchors are meant
 // to be hue-adjacent so HCL blending between them stays smooth. A3 doubles as
 // rain's stream hue. Highlight is the star / rain-head white — the brightest
-// colour the field can reach (theme.Fg). An anchor that is not parseable hex
+// colour the field can reach (the foreground / near-white). An anchor that is not parseable hex
 // degrades gracefully (see splashGradientColors, splashShadeParse).
 type Palette struct {
 	A0, A1, A2, A3 string
@@ -35,7 +35,7 @@ const (
 	cellAspect = 2.0
 
 	// driftPerFrame is the outward phase advance per nominal 60fps animation
-	// frame (see the app's splash tick) — ~0.9 phase units/second, the same
+	// frame (advanced by the caller's animation tick) — ~0.9 phase units/second, the same
 	// visual speed the field had at its original 5Hz push (0.18/frame), just
 	// twelve times smoother along the way.
 	driftPerFrame = 0.015
@@ -171,7 +171,7 @@ func splashLUTFor(pal Palette, prof termenv.Profile) *splashLUT {
 }
 
 // splashAnchors is the warm→cool nebula gradient (pink → purple → blue → cyan),
-// drawn from the palette's anchors so it tracks the active theme. Consecutive
+// drawn from the palette's anchors so it tracks the palette. Consecutive
 // anchors are hue-adjacent, so HCL blending between them stays smooth (no muddy
 // backtrack).
 func splashAnchors(pal Palette) []lipgloss.Color {
