@@ -7,15 +7,14 @@ import (
 
 	"github.com/ZviBaratz/fresco"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/muesli/termenv"
 )
 
 var fuzzPalette = fresco.Palette{
 	A0: "#f7768e", A1: "#bb9af7", A2: "#7aa2f7", A3: "#7dcfff", Highlight: "#c0caf5",
 }
 
-var fuzzProfiles = []termenv.Profile{
-	termenv.Ascii, termenv.ANSI, termenv.ANSI256, termenv.TrueColor,
+var fuzzProfiles = []fresco.ColorProfile{
+	fresco.NoColor, fresco.ANSI16, fresco.ANSI256, fresco.TrueColor,
 }
 
 // FuzzParseVariant asserts ParseVariant never panics on arbitrary input and that
@@ -60,7 +59,7 @@ func FuzzRender(f *testing.F) {
 			Variant:  fresco.Variant(variantRaw),
 			FocalRow: focal % 300,
 			LumRange: &lumRange,
-			Profile:  &prof,
+			Profile:  prof,
 		}
 
 		out := fresco.Render(w, h, frame, opts)

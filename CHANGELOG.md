@@ -9,6 +9,20 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Changed
+
+- **`Options.Profile` is now a fresco-owned `ColorProfile` enum** instead of
+  `*termenv.Profile`, so pinning colour depth no longer requires importing
+  `termenv` (#15). The zero value, `Auto`, auto-detects the terminal exactly as
+  an unset (`nil`) profile did before; pin `TrueColor`, `ANSI256`, `ANSI16`, or
+  `NoColor` for a fixed depth. This also settles the options-ergonomics review
+  (#16): `Options` stays a plain struct — functional options were rejected as
+  per-frame allocation churn for a 60fps render call — and `LumRange` stays a
+  `*float64` because `0` is a meaningful value, so no sentinel can mean "unset".
+  **Breaking:** `Profile: &p` becomes `Profile: p` (a `ColorProfile` value);
+  callers pinning depth swap `termenv.Ascii`→`NoColor`, `termenv.ANSI`→`ANSI16`,
+  and drop the `termenv` import.
+
 ## [0.2.0] - 2026-07-16
 
 The first **"Open the doors"** release. It makes no change to the rendering

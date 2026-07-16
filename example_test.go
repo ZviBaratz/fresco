@@ -6,7 +6,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/ZviBaratz/fresco"
-	"github.com/muesli/termenv"
 )
 
 // examplePalette is the tokyo-night-leaning gradient used across the examples:
@@ -24,11 +23,10 @@ var examplePalette = fresco.Palette{
 // deterministic regardless of the ambient terminal — useful in tests and when
 // writing to a non-TTY.
 func ExampleRender() {
-	profile := termenv.Ascii // pin the color depth so the output is stable
 	frame := fresco.Render(12, 3, 0, fresco.Options{
 		Palette: examplePalette,
 		Variant: fresco.Ripple,
-		Profile: &profile,
+		Profile: fresco.NoColor, // pin the colour depth so the output is stable
 	})
 
 	lines := strings.Split(frame, "\n")

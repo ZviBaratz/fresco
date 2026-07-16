@@ -206,24 +206,23 @@ func TestRenderProfileOverridesAmbient(t *testing.T) {
 	pal := splashTestPalette()
 	pal.A2 = "#0a0b0c" // a private cache entry, so other tests are unaffected
 
-	truecolor, asciiP := termenv.TrueColor, termenv.Ascii
-	render := func(p *termenv.Profile) string {
+	render := func(p ColorProfile) string {
 		return Render(60, 20, 3, Options{Palette: pal, Variant: Tunnel, FocalRow: centeredFocalRow(20), Profile: p})
 	}
 
 	withColorProfile(t, termenv.Ascii)
-	require.Contains(t, render(&truecolor), "\x1b[38;2;",
-		"an explicit truecolor Profile must emit truecolor SGR even when the ambient profile is colorless")
+	require.Contains(t, render(TrueColor), "\x1b[38;2;",
+		"an explicit TrueColor Profile must emit truecolor SGR even when the ambient profile is colorless")
 
 	withColorProfile(t, termenv.TrueColor)
-	require.NotContains(t, render(&asciiP), "\x1b[",
-		"an explicit Ascii Profile must emit no escapes even when the ambient profile is truecolor")
+	require.NotContains(t, render(NoColor), "\x1b[",
+		"an explicit NoColor Profile must emit no escapes even when the ambient profile is truecolor")
 }
 
-// TestRenderNilProfileDefersToAmbient guards the default: a nil Profile keeps
-// the auto-detect behavior a caller relies on, tracking the ambient profile
-// in both directions.
-func TestRenderNilProfileDefersToAmbient(t *testing.T) {
+// TestRenderAutoProfileDefersToAmbient guards the default: Auto (the Profile
+// zero value, i.e. an unset field) keeps the auto-detect behavior a caller
+// relies on, tracking the ambient profile in both directions.
+func TestRenderAutoProfileDefersToAmbient(t *testing.T) {
 	pal := splashTestPalette()
 	pal.A2 = "#0c0b0a" // a private cache entry, distinct from the override test's
 	render := func() string {
@@ -231,10 +230,10 @@ func TestRenderNilProfileDefersToAmbient(t *testing.T) {
 	}
 
 	withColorProfile(t, termenv.TrueColor)
-	require.Contains(t, render(), "\x1b[38;2;", "a nil Profile must defer to the ambient truecolor profile")
+	require.Contains(t, render(), "\x1b[38;2;", "an Auto Profile must defer to the ambient truecolor profile")
 
 	withColorProfile(t, termenv.Ascii)
-	require.NotContains(t, render(), "\x1b[", "a nil Profile under a colorless ambient must stay colorless")
+	require.NotContains(t, render(), "\x1b[", "an Auto Profile under a colorless ambient must stay colorless")
 }
 
 // TestFieldContrastIsStillHermite pins the distinction renderField draws

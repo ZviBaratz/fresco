@@ -19,7 +19,6 @@ import (
 	"math"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 )
 
@@ -182,17 +181,20 @@ type Options struct {
 	FocalRow int
 	// LumRange, when non-nil, overrides the variant's shipped luminance-range
 	// policy (the split between glyph density and colour luminance); nil keeps
-	// the variant's default. It is how a caller applies a luminance-range
-	// override without this package reading the environment.
+	// the variant's default. It stays a pointer because 0 is a meaningful value
+	// (density carries all the brightness), so no float64 sentinel could stand
+	// for "unset". It is how a caller applies a luminance-range override without
+	// this package reading the environment.
 	LumRange *float64
-	// Profile, when non-nil, pins the color depth Render emits at (truecolor,
-	// 256, 16, or none), independent of the process-global color profile. nil
-	// defers to lipgloss.ColorProfile() — the auto-detected terminal profile —
-	// which is what a caller wants when rendering to a real pane. Setting it
-	// makes Render pure over its inputs: the same Options yield the same bytes
-	// regardless of ambient stdout state, which is what a standalone consumer
-	// (and a snapshot test) needs.
-	Profile *termenv.Profile
+	// Profile pins the colour depth Render emits at, independent of the
+	// process-global colour profile. The zero value, Auto, defers to the
+	// auto-detected terminal profile — what a caller wants when rendering to a
+	// real pane, and the behaviour of an unset field. Pinning any other value
+	// (TrueColor / ANSI256 / ANSI16 / NoColor) makes Render pure over its
+	// inputs: the same Options yield the same bytes regardless of ambient stdout
+	// state, which is what a standalone consumer (and a snapshot test) needs.
+	// It is a fresco-owned ColorProfile so a caller need not import termenv.
+	Profile ColorProfile
 }
 
 // Render builds the colored splash field background: exactly h rows of exactly
@@ -209,14 +211,12 @@ func Render(w, h, frame int, opts Options) string {
 	if opts.LumRange != nil {
 		ops.lumRange = *opts.LumRange
 	}
-	// Resolve the color depth: an explicit Options.Profile wins, otherwise defer
-	// to the auto-detected terminal profile. This is the only place the ambient
-	// profile is read, so a caller that pins Profile makes Render pure over its
-	// inputs (see splashLUTFor, which bakes the SGR bytes for this profile).
-	prof := lipgloss.ColorProfile()
-	if opts.Profile != nil {
-		prof = *opts.Profile
-	}
+	// Resolve the colour depth. Auto (the zero value) defers to the
+	// auto-detected terminal profile; any pinned value wins. resolve is the only
+	// place the ambient profile is read, so a caller that pins Profile makes
+	// Render pure over its inputs (see splashLUTFor, which bakes the SGR bytes
+	// for this profile).
+	prof := opts.Profile.resolve()
 	return renderField(w, h, frame, opts.Palette, focalRow, opts.Variant, ops, prof)
 }
 
