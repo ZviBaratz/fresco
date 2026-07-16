@@ -372,18 +372,19 @@ func splashRunAffix(styleIdx int, lut *splashLUT) splashAffix {
 }
 
 // splashOpenRun / splashCloseRun bracket a run of same-color cells with one SGR
-// pair, while the cells themselves are written straight into sb. The cells used
-// to accumulate in a second strings.Builder that was Render'd and Reset per run,
-// but Reset drops the buffer — so every run re-allocated, and runs coalesce at
-// only ~1.1 cells because the hue gradient steps almost every cell. Writing
-// through to sb keeps the emitted bytes identical while making the per-frame
-// allocation count a function of sb's growth rather than of the cell count.
-func splashOpenRun(sb *strings.Builder, styleIdx int, lut *splashLUT) {
-	sb.WriteString(splashRunAffix(styleIdx, lut).prefix)
+// pair, appending it to dst; the cells themselves are appended straight to the
+// same buffer. The cells used to accumulate in a second strings.Builder that was
+// Render'd and Reset per run, but Reset drops the buffer — so every run
+// re-allocated, and runs coalesce at only ~1.1 cells because the hue gradient
+// steps almost every cell. Appending through to dst keeps the emitted bytes
+// identical while making the per-frame allocation count a function of dst's
+// growth rather than of the cell count.
+func splashOpenRun(dst []byte, styleIdx int, lut *splashLUT) []byte {
+	return append(dst, splashRunAffix(styleIdx, lut).prefix...)
 }
 
-func splashCloseRun(sb *strings.Builder, styleIdx int, lut *splashLUT) {
-	sb.WriteString(splashRunAffix(styleIdx, lut).suffix)
+func splashCloseRun(dst []byte, styleIdx int, lut *splashLUT) []byte {
+	return append(dst, splashRunAffix(styleIdx, lut).suffix...)
 }
 
 // starHash is a deterministic per-cell pseudo-random value in [0,1), so the

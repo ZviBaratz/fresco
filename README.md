@@ -94,6 +94,12 @@ and restores your cursor on exit.
 `Render(w, h, frame int, opts Options) string` — the whole surface. It returns
 exactly `h` lines of exactly `w` visible cells (or `""` for a degenerate pane).
 
+For a per-frame render loop, `AppendRender(dst []byte, w, h, frame int, opts Options) []byte`
+appends the same bytes to a buffer you own, so you can reuse it across frames
+(`buf = fresco.AppendRender(buf[:0], w, h, frame, opts)`) instead of allocating a
+fresh string each tick. `Render` is a thin wrapper over it and the two are
+byte-identical.
+
 ```go
 type Options struct {
 	Palette  Palette      // the five colour anchors (required for colour)
