@@ -39,6 +39,21 @@ with the pre-1.0 caveats described in
   callers pinning depth swap `termenv.Ascii`→`NoColor`, `termenv.ANSI`→`ANSI16`,
   and drop the `termenv` import.
 
+### Performance
+
+- **Hot-path allocation pass** (#21) — the render loop no longer materialises the
+  field into two per-frame `[]float64` buffers (the "Pass 1"/"Pass 2" split is
+  fused: each cell is evaluated inline as it is emitted), and the per-palette LUT
+  cache is keyed by a comparable struct instead of a freshly joined string on every
+  call. Output is byte-identical (verified by a 16,896-frame SHA-256 sweep across
+  variants × profiles × frames × sizes × luminance ranges). On a reused
+  `AppendRender` buffer this takes the warm hot path from 4 allocations/frame
+  (≈82 KB at 120×40) to 1 (`Rain`/`Ripple`: to **zero**); via `Render`, per-frame
+  `B/op` roughly halves. Wall-clock gains are modest and variant-dependent (≈8–12%
+  for the lighter variants, flat for tunnel and the shaded path) — the pass targets
+  garbage, not latency. Baselines and method are recorded in
+  [`docs/perf.md`](docs/perf.md).
+
 ## [0.2.0] - 2026-07-16
 
 The first **"Open the doors"** release. It makes no change to the rendering
