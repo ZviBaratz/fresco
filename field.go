@@ -5,15 +5,19 @@
 // owns any scene composition (an overlay/message on top) and variant selection.
 package fresco
 
-// The splash field generator: deterministic noise primitives and the two-pass
-// renderer built on them. Pass 1 evaluates the raw (pre-contrast) scalar field
-// into a buffer; Pass 2 applies the contrast curve, the edge vignette, glyph
-// and color quantization, the starfield, and emits run-coalesced ANSI.
-// Everything is free of time/rand dependence so Render stays pure and
-// snapshot-testable — animation enters only through the frame counter.
+// The splash field generator: deterministic noise primitives and the renderer
+// built on them. The renderer runs two conceptual stages per cell — evaluate the
+// raw (pre-contrast) scalar field, then apply the contrast curve, the edge
+// vignette, glyph and color quantization, the starfield, and emit run-coalesced
+// ANSI. The two were once separate whole-field loops with the field materialized
+// into a []float64 buffer between them ("Pass 1" and "Pass 2", a naming other
+// files still use for the second stage); the field eval is now fused into the
+// emit loop, so no per-frame field buffer is allocated and the stages are
+// otherwise unchanged. Everything is free of time/rand dependence so Render stays
+// pure and snapshot-testable — animation enters only through the frame counter.
 //
 // The gradient LUT lives in lut.go and the variant vocabulary in variant.go;
-// this file owns the field math, the per-cell loops, and the Render entrypoint.
+// this file owns the field math, the per-cell loop, and the Render entrypoint.
 
 import (
 	"math"
@@ -91,32 +95,6 @@ func latticeVal(x, y int32, seed uint32) float64 {
 }
 
 func splashLerp(a, b, t float64) float64 { return a + (b-a)*t }
-
-// splashField is Pass 1's output: the raw scalar field (pre-contrast,
-// pre-envelope, in [0,1]) plus a variant-defined hue helper per cell. The helper
-// is the gradient position the field wants for that cell — see splashColorIdx.
-type splashField struct {
-	vals []float64
-	aux  []float64
-}
-
-// splashEvalField runs Pass 1: the raw field for every cell, in focal-relative
-// aspect-corrected coordinates (dx, dy) — the same frame the edge vignette uses
-// in Pass 2. Buffers are per-call allocations; at splash
-// sizes (19 KB at 80×30) that is cheaper than any pooling would be worth.
-func splashEvalField(w, h int, cx, cyFocal, phase float64, at splashPointFn) splashField {
-	f := splashField{vals: make([]float64, w*h), aux: make([]float64, w*h)}
-	i := 0
-	for row := 0; row < h; row++ {
-		dy := (float64(row) - cyFocal) * cellAspect
-		for col := 0; col < w; col++ {
-			dx := float64(col) - cx
-			f.vals[i], f.aux[i] = at(col, row, dx, dy, phase)
-			i++
-		}
-	}
-	return f
-}
 
 // splashPointFn evaluates one cell's raw field value and its hue helper, both
 // in [0,1]. It must be pure over its arguments: animation enters only through
@@ -278,14 +256,11 @@ func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant
 	phase := float64(frame) * driftPerFrame
 
 	at := splashFieldAt(variant, maxD)
-	fld := splashEvalField(w, h, cx, cyFocal, phase, at)
 
 	lut := splashLUTFor(pal, prof)
 	nColors := len(lut.styles)
 	starIdx := lut.starIndex() // splashRunAffix emits any index >= this as a star
-	ramp := []rune(splashRamp)
-	maxGlyph := len(ramp) - 1
-	starRampR := []rune(starRamp)
+	maxGlyph := len(splashRampR) - 1
 	starMax := len(starRampR) - 1
 
 	// A seed, not a bound — the run count isn't known until the field is walked.
@@ -328,15 +303,26 @@ func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant
 			dst = append(dst, '\n')
 		}
 		// edgeY is exactly 0 on the first/last rows, and the envelope multiplies
-		// the field *after* any Pass-1 processing — that construction (not
-		// tuning) is what keeps the border rows blank.
+		// the field *after* it is evaluated and contrast-curved — that construction
+		// (not tuning) is what keeps the border rows blank.
 		edgeY := smoothstep(0, 1, clamp01(math.Min(float64(row), float64(h-1-row))/marginY))
+		// dy is the cell's focal-relative, aspect-corrected row — the same frame
+		// the edge vignette uses, and the y the field evaluator wants. It is a
+		// per-row constant, so it is hoisted out of the column loop.
+		dy := (float64(row) - cyFocal) * cellAspect
 		curIdx := -1 // -1 marks a blank (uncolored) run
 		for col := 0; col < w; col++ {
 			idx, ch := -1, ' '
 
 			if edgeY > 0 {
-				cell := row*w + col
+				// The field eval, fused in from what used to be a separate
+				// whole-field Pass 1: evaluate this one cell's raw value and hue
+				// helper right here instead of reading them out of a materialized
+				// buffer. dx is the focal-relative column (dy is the row above). The
+				// guard means blank border rows skip the eval entirely — the buffered
+				// pass computed every cell, then discarded the border ones.
+				dx := float64(col) - cx
+				val, aux := at(col, row, dx, dy, phase)
 				// The contrast curve. It is full-range — it clips nothing, which is
 				// what a field carrying its own gradient needs — but it is NOT an
 				// identity, and the distinction is worth the call it invites you to
@@ -345,7 +331,7 @@ func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant
 				// field is tuned against this S-curved version of its output rather
 				// than against its generator's raw values. Pinned by
 				// TestFieldContrastIsStillHermite.
-				intensity := smoothstep(0, 1, fld.vals[cell])
+				intensity := smoothstep(0, 1, val)
 				edgeX := smoothstep(0, 1, clamp01(math.Min(float64(col), float64(w-1-col))/marginX))
 				envelope := edgeX * edgeY
 				lit := intensity * envelope
@@ -371,8 +357,8 @@ func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant
 				} else {
 					gf := dens * float64(maxGlyph)
 					if g := clampInt(int(gf), 0, maxGlyph); g > 0 {
-						if si, ok := shadeAt(splashColorIdx(fld.aux[cell], nColors), lumT, ops, lut); ok {
-							ch = ramp[g]
+						if si, ok := shadeAt(splashColorIdx(aux, nColors), lumT, ops, lut); ok {
+							ch = splashRampR[g]
 							idx = si
 						}
 					}

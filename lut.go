@@ -2,14 +2,13 @@ package fresco
 
 // The gradient LUT and the emitter: the theme-anchored colour ramp the field is
 // painted with, precomputed once per palette, plus the run-coalescing SGR
-// emitter the two-pass renderer brackets its cells with. The field math and the
-// per-cell loops live in field.go; the variant vocabulary in variant.go.
+// emitter the render loop brackets its cells with. The field math and the
+// per-cell loop live in field.go; the variant vocabulary in variant.go.
 
 import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -130,6 +129,17 @@ const (
 	rainRampFloor   = 0.06
 )
 
+// splashRampR and starRampR are the []rune forms of the ramps above, hoisted to
+// package scope. The render loop indexes them by glyph; converting the const
+// strings with []rune(...) allocates, and doing it per frame put two throwaway
+// slices on the hot path (see renderField). They are read-only after init — the
+// loop only ever reads a rune out — so sharing one copy across all renders is
+// safe, including the concurrent renders TestRenderSplashFieldConcurrent guards.
+var (
+	splashRampR = []rune(splashRamp)
+	starRampR   = []rune(starRamp)
+)
+
 // splashLUT is a precomputed gradient: parallel color/style stops from the
 // warm core hue to the cool rim, plus a bright star color. Built once per
 // palette so the per-cell hot loop only does index lookups, never color math.
@@ -191,9 +201,21 @@ func splashAffixFor(st lipgloss.Style) splashAffix {
 	return splashAffix{prefix: prefix, suffix: suffix}
 }
 
+// lutKey memoizes a built LUT by everything the entry bakes in: the resolved
+// color profile and each palette anchor the gradient draws from. It is a
+// comparable struct rather than a joined string on purpose — a cache hit happens
+// on every frame of a steady animation, and building a string key there put a
+// throwaway allocation on the render hot path for no lookup benefit (the struct
+// hashes and compares in place). All fields are the exact values the entry was
+// built from, so equal keys mean an interchangeable entry.
+type lutKey struct {
+	prof               termenv.Profile
+	a0, a1, a2, a3, hi string
+}
+
 var (
 	splashLUTMu    sync.Mutex
-	splashLUTCache = map[string]*splashLUT{}
+	splashLUTCache = map[lutKey]*splashLUT{}
 )
 
 // splashLUTFor returns the memoized gradient for a palette at a given color
@@ -210,10 +232,7 @@ var (
 // default) — this package no longer reads the global itself, so two callers at
 // different depths never collide in the cache.
 func splashLUTFor(pal Palette, prof termenv.Profile) *splashLUT {
-	key := strings.Join([]string{
-		strconv.Itoa(int(prof)),
-		pal.A0, pal.A1, pal.A2, pal.A3, pal.Highlight,
-	}, "|")
+	key := lutKey{prof, pal.A0, pal.A1, pal.A2, pal.A3, pal.Highlight}
 	splashLUTMu.Lock()
 	defer splashLUTMu.Unlock()
 	if lut, ok := splashLUTCache[key]; ok {
