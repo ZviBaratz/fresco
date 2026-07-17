@@ -11,6 +11,12 @@ with the pre-1.0 caveats described in
 
 ### Added
 
+- **`AppendRender(dst []byte, w, h, frame int, opts Options) []byte`** — a
+  buffer-friendly render path that appends the frame to a caller-owned slice, so
+  a per-frame loop can reuse one buffer (`buf = AppendRender(buf[:0], …)`)
+  instead of allocating a fresh string every tick (#17). `Render` becomes a thin,
+  byte-identical wrapper over it. Purely additive: measured at 120×40 truecolor,
+  reusing the buffer removes the per-frame output allocation (≈172 KB → 82 KB).
 - **`Palette.Validate() error`** — an advisory, opt-in check that reports any
   anchor that is not a canonical hex colour (`"#rgb"` or `"#rrggbb"`), naming
   every offending field (#18). `Render` is unchanged: it still never errors or

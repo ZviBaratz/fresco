@@ -17,7 +17,9 @@ package fresco
 
 import (
 	"math"
-	"strings"
+	"slices"
+	"unicode/utf8"
+	"unsafe"
 
 	"github.com/muesli/termenv"
 )
@@ -199,10 +201,33 @@ type Options struct {
 
 // Render builds the colored splash field background: exactly h rows of exactly
 // w visible cells, or "" on a degenerate pane. Pure over its inputs
-// (deterministic, snapshot-testable). It resolves the focal row and the
-// per-variant Pass-2 policy (applying Options.LumRange over the variant default)
-// and hands off to renderField.
+// (deterministic, snapshot-testable). It is a thin convenience wrapper over
+// AppendRender — the two produce byte-identical output for identical inputs.
 func Render(w, h, frame int, opts Options) string {
+	b := AppendRender(nil, w, h, frame, opts)
+	// b was just allocated by AppendRender(nil, …) and is never read or mutated
+	// again, so aliasing it as a string without a copy is safe — the same trick
+	// strings.Builder.String does internally. This keeps Render allocation- and
+	// byte-identical to the pre-AppendRender code (a plain string(b) would add a
+	// full-frame copy on every call, which on a per-frame render path is exactly
+	// the garbage AppendRender exists to let a caller avoid).
+	return unsafe.String(unsafe.SliceData(b), len(b)) //nolint:gosec // G103: b is fresh and unshared, so the no-copy alias is safe
+}
+
+// AppendRender appends the rendered frame to dst and returns the extended slice.
+// It is the allocation-free core Render wraps: a caller driving an animation can
+// reuse one buffer across frames — AppendRender(buf[:0], …) — instead of letting
+// Render allocate a fresh string every time. Pass a nil dst to start fresh.
+//
+// It is otherwise identical to Render: the same inputs yield the same bytes, and
+// it writes exactly h rows of exactly w visible cells (appending nothing for a
+// degenerate pane). Pure over its inputs — deterministic and snapshot-testable.
+//
+// The returned slice aliases dst's backing array whenever it has room, so bytes
+// read out of a previous frame are invalidated by the next
+// AppendRender(buf[:0], …): fully consume (write or composite) one frame before
+// rendering the next into the same buffer.
+func AppendRender(dst []byte, w, h, frame int, opts Options) []byte {
 	focalRow := opts.FocalRow
 	if focalRow < 0 {
 		focalRow = (h - 1) / 2
@@ -213,11 +238,11 @@ func Render(w, h, frame int, opts Options) string {
 	}
 	// Resolve the colour depth. Auto (the zero value) defers to the
 	// auto-detected terminal profile; any pinned value wins. resolve is the only
-	// place the ambient profile is read, so a caller that pins Profile makes
-	// Render pure over its inputs (see splashLUTFor, which bakes the SGR bytes
+	// place the ambient profile is read, so a caller that pins Profile makes the
+	// output pure over its inputs (see splashLUTFor, which bakes the SGR bytes
 	// for this profile).
 	prof := opts.Profile.resolve()
-	return renderField(w, h, frame, opts.Palette, focalRow, opts.Variant, ops, prof)
+	return renderField(dst, w, h, frame, opts.Palette, focalRow, opts.Variant, ops, prof)
 }
 
 // renderField builds the colored field background: exactly h rows of
@@ -228,12 +253,13 @@ func Render(w, h, frame int, opts Options) string {
 // and a size-relative variant scales itself against the focal-point-to-corner
 // radius (see splashFieldAt), so the field stays visually anchored on the focal
 // point while still reaching the edges. Pure over its inputs (deterministic,
-// snapshot-testable); returns "" on a degenerate pane. ops is the resolved
-// per-variant Pass-2 policy (see Render and Variant.ops), and prof is the
-// resolved color profile the emitted SGR is baked for (see Render).
-func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, ops splashOps, prof termenv.Profile) string {
+// snapshot-testable); appends nothing on a degenerate pane. ops is the resolved
+// per-variant Pass-2 policy (see AppendRender and Variant.ops), and prof is the
+// resolved color profile the emitted SGR is baked for (see AppendRender). It
+// appends the frame to dst and returns the extended slice.
+func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant Variant, ops splashOps, prof termenv.Profile) []byte {
 	if w <= 0 || h <= 0 {
-		return ""
+		return dst
 	}
 	cx := float64(w-1) / 2
 	cyFocal := float64(focalRow)
@@ -244,7 +270,7 @@ func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, op
 		math.Max(cx, float64(w-1)-cx),
 		math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
 	if maxD <= 0 {
-		return ""
+		return dst
 	}
 	// Border-fade reach in cells (min 1 so a tiny pane still fades, never /0).
 	marginX := math.Max(1, float64(w)*edgeVignetteFrac)
@@ -262,19 +288,18 @@ func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, op
 	starRampR := []rune(starRamp)
 	starMax := len(starRampR) - 1
 
-	var sb strings.Builder
 	// A seed, not a bound — the run count isn't known until the field is walked.
 	// ~4 bytes/cell is where the truecolor output actually lands at lumRange 0
 	// (measured 2.1–5.5 across the variants: a cell is one glyph plus its share of
 	// the SGR bracket its run pays for). Seeding near the real size is what holds
-	// Builder's doubling to a step or two: at 240×60 it is the difference between
+	// the buffer's growth to a step or two: at 240×60 it is the difference between
 	// ~24 allocations a frame and 4. A colorless profile emits ~1 byte/cell and
 	// merely over-seeds — one buffer, no copies.
 	//
 	// A luminance-shaded field lands far higher and the seed has to know it.
 	// Brightness stepping per cell is why — a run breaks when *either* hue or
 	// luminance changes, and runs already coalesced at only ~1.14 cells, so nearly
-	// every cell pays its own SGR bracket. Seeded at 4 the Builder doubled twice
+	// every cell pays its own SGR bracket. Seeded at 4 the buffer doubled twice
 	// more and copied ~150KB a frame for nothing; rain was paying that on the
 	// 4-byte seed too, at 6 allocations a frame rather than 4.
 	//
@@ -297,10 +322,10 @@ func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, op
 	if ops.lumRange > 0 {
 		perCell = 18
 	}
-	sb.Grow(w*h*perCell + h)
+	dst = slices.Grow(dst, w*h*perCell+h)
 	for row := 0; row < h; row++ {
 		if row > 0 {
-			sb.WriteByte('\n')
+			dst = append(dst, '\n')
 		}
 		// edgeY is exactly 0 on the first/last rows, and the envelope multiplies
 		// the field *after* any Pass-1 processing — that construction (not
@@ -366,15 +391,15 @@ func renderField(w, h, frame int, pal Palette, focalRow int, variant Variant, op
 			}
 
 			if idx != curIdx {
-				splashCloseRun(&sb, curIdx, lut)
-				splashOpenRun(&sb, idx, lut)
+				dst = splashCloseRun(dst, curIdx, lut)
+				dst = splashOpenRun(dst, idx, lut)
 				curIdx = idx
 			}
-			sb.WriteRune(ch)
+			dst = utf8.AppendRune(dst, ch)
 		}
-		splashCloseRun(&sb, curIdx, lut)
+		dst = splashCloseRun(dst, curIdx, lut)
 	}
-	return sb.String()
+	return dst
 }
 
 // smoothstep is the classic Hermite ease between edges a and b, clamped to [0,1].
