@@ -128,17 +128,17 @@ no inherited default.
 
 Miss one and a specific test names it for you (that is by design — adding a variant
 is exactly when a gap is most likely and least likely to be noticed). For a variant
-`aurora`:
+`veil`:
 
 | Edit | Where | The guard that fails if you skip it |
 |---|---|---|
-| `Aurora` const in the `iota` block, before `variantCount`, **with a doc comment** | `variant.go` | compile / `revive` `exported` lint |
-| `"aurora": Aurora` | `variantNames`, `variant.go` | `TestSplashVariantNamesCoverAllVariants` |
-| `Aurora` in the returned slice | `Variants()`, `variant.go` | `TestSplashRotationCoversEveryVariant` |
-| `case Aurora:` → `splashOps{stars, lumRange}` | `Variant.ops()`, `variant.go` | `TestShippedVariantsOps` |
-| `case Aurora:` → your point-fn | `splashFieldAt`, `field.go` | **none shared — add the §5 reach guard** |
-| `"aurora": Aurora` | `splashTestVariants()`, `helpers_test.go` | `TestSplashTestVariantsCoversEnum` |
-| `Aurora` row in the `want` map | `TestShippedVariantsOps`, `variant_test.go` | `require.Len(want, variantCount)` |
+| `Veil` const in the `iota` block, before `variantCount`, **with a doc comment** | `variant.go` | compile / `revive` `exported` lint |
+| `"veil": Veil` | `variantNames`, `variant.go` | `TestSplashVariantNamesCoverAllVariants` |
+| `Veil` in the returned slice | `Variants()`, `variant.go` | `TestSplashRotationCoversEveryVariant` |
+| `case Veil:` → `splashOps{stars, lumRange}` | `Variant.ops()`, `variant.go` | `TestShippedVariantsOps` |
+| `case Veil:` → your point-fn | `splashFieldAt`, `field.go` | **none shared — add the §5 reach guard** |
+| `"veil": Veil` | `splashTestVariants()`, `helpers_test.go` | `TestSplashTestVariantsCoversEnum` |
+| `Veil` row in the `want` map | `TestShippedVariantsOps`, `variant_test.go` | `require.Len(want, variantCount)` |
 | new name line | `ExampleVariants` `// Output:`, `example_test.go` | the example test |
 | variant table + roster prose (+ bump the "N variants" counts) | `README.md` | — (a reviewer will) |
 | `### Added` entry | `CHANGELOG.md` `[Unreleased]` | — (a reviewer will) |
