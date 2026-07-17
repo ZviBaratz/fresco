@@ -6,6 +6,8 @@ package fresco
 // per-cell loops live in field.go; the variant vocabulary in variant.go.
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -17,15 +19,67 @@ import (
 )
 
 // Palette is the splash field's colour input: four warm→cool gradient anchors
-// plus a highlight, each an "#rrggbb" hex string. A0..A3 are the nebula gradient
-// (e.g. pink, purple, blue, cyan); consecutive anchors are meant
+// plus a highlight, each a hex string ("#rgb" or "#rrggbb"). A0..A3 are the
+// nebula gradient (e.g. pink, purple, blue, cyan); consecutive anchors are meant
 // to be hue-adjacent so HCL blending between them stays smooth. A3 doubles as
 // rain's stream hue. Highlight is the star / rain-head white — the brightest
-// colour the field can reach (the foreground / near-white). An anchor that is not parseable hex
-// degrades gracefully (see splashGradientColors, splashShadeParse).
+// colour the field can reach (the foreground / near-white).
+//
+// Render never rejects a Palette: an anchor that is not parseable hex degrades
+// gracefully to a documented fallback (see splashGradientColors, splashShadeParse,
+// rainRampHexAt), so the exactly-h×w-cells contract holds for any Palette. Call
+// Validate to check a palette up front instead of discovering a typo on screen.
 type Palette struct {
 	A0, A1, A2, A3 string
 	Highlight      string
+}
+
+// Validate reports whether every anchor is a canonical hex colour ("#rgb" or
+// "#rrggbb"). It is advisory and opt-in: Render never returns an error and never
+// panics on a malformed Palette — each unparseable anchor degrades to a
+// documented fallback, so the h×w-cells contract always holds. Validate exists
+// so a caller loading a theme can surface a bad colour deliberately rather than
+// see it painted as a fallback.
+//
+// It is intentionally stricter than Render's parser (go-colorful's Hex, which
+// also accepts a missing digit or trailing garbage — "#12345g" parses there):
+// Validate flags anything a human would call a typo (a missing '#', a non-hex
+// digit, a wrong length, trailing characters) even when Render would still paint
+// something for it. So Validate may reject a string Render nonetheless colours;
+// that gap is the point.
+//
+// The returned error names every offending field and its value (joined, so one
+// call reports all of them); it is nil when all five anchors are canonical.
+func (p Palette) Validate() error {
+	var errs []error
+	for _, f := range []struct{ name, val string }{
+		{"A0", p.A0}, {"A1", p.A1}, {"A2", p.A2}, {"A3", p.A3}, {"Highlight", p.Highlight},
+	} {
+		if !isCanonicalHex(f.val) {
+			errs = append(errs, fmt.Errorf("fresco: Palette.%s: %q is not a hex colour (want %q or %q)", f.name, f.val, "#rgb", "#rrggbb"))
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// isCanonicalHex reports whether s is exactly "#rgb" or "#rrggbb" — a leading
+// '#', then 3 or 6 hex digits and nothing else. Deliberately narrower than
+// go-colorful's parser so Validate catches typos the renderer would otherwise
+// paint through.
+func isCanonicalHex(s string) bool {
+	if len(s) != 4 && len(s) != 7 {
+		return false
+	}
+	if s[0] != '#' {
+		return false
+	}
+	for i := 1; i < len(s); i++ {
+		c := s[i]
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F') {
+			return false
+		}
+	}
+	return true
 }
 
 const (
@@ -184,7 +238,8 @@ func splashAnchors(pal Palette) []lipgloss.Color {
 // splashGradientColors blends the anchors across splashLUTSize stops in HCL for
 // smooth, non-muddy hue steps, and pins the exact endpoints (HCL round-tripping
 // can nudge the hex a hair). If any anchor is not parseable hex (an unusual
-// theme), the ramp degrades to flat purple rather than emitting broken colors.
+// theme), the ramp collapses to a flat fill of the A1 anchor rather than
+// emitting broken colors (Palette.Validate flags this up front).
 //
 // Split out from buildSplashLUT so the luminance grid can shade the same stops the
 // gradient renders (see buildShadeGrid) without rebuilding a second, subtly
