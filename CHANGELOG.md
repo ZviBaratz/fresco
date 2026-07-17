@@ -9,6 +9,13 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-17
+
+The **"Refine & prove"** release. It settles the pre-1.0 API — a fresco-owned
+`ColorProfile` enum, up-front `Palette.Validate`, and a buffer-reusing
+`AppendRender` — then proves the hot path with an allocation pass and validates
+the whole surface against its real downstream consumer (atrium).
+
 ### Added
 
 - **`AppendRender(dst []byte, w, h, frame int, opts Options) []byte`** — a
@@ -94,6 +101,7 @@ glance.
   `Options` / `Palette` API, automatic terminal colour-profile detection, and
   the `cmd/fresco-demo` runnable demo.
 
-[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/ZviBaratz/fresco/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ZviBaratz/fresco/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ZviBaratz/fresco/releases/tag/v0.1.0
