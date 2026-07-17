@@ -96,11 +96,11 @@ exactly `h` lines of exactly `w` visible cells (or `""` for a degenerate pane).
 
 ```go
 type Options struct {
-	Palette  Palette          // the five colour anchors (required for colour)
-	Variant  Variant          // Rain, Tunnel, Ripple, or Galaxy
-	FocalRow int              // the row the field emanates from; negative = centre
-	LumRange *float64         // optional override for the density↔luminance split
-	Profile  *termenv.Profile // optional: pin the colour depth (nil = auto-detect)
+	Palette  Palette      // the five colour anchors (required for colour)
+	Variant  Variant      // Rain, Tunnel, Ripple, or Galaxy
+	FocalRow int          // the row the field emanates from; negative = centre
+	LumRange *float64     // optional override for the density↔luminance split
+	Profile  ColorProfile // colour depth; the zero value Auto = auto-detect
 }
 
 type Palette struct {
@@ -109,10 +109,12 @@ type Palette struct {
 }
 ```
 
-**Colour depth.** By default fresco auto-detects the terminal's colour profile
-(truecolor / 256 / 16 / none). Set `Options.Profile` to pin it — useful for
-tests, for writing to a non-TTY, or for forcing colour when piping. With it set,
-`Render` is pure over its inputs regardless of the ambient terminal.
+**Colour depth.** By default (`Profile: Auto`, the zero value) fresco auto-detects
+the terminal's colour profile. Pin it — `fresco.TrueColor`, `ANSI256`, `ANSI16`,
+or `NoColor` — for tests, for writing to a non-TTY, or to force colour when
+piping; with a profile pinned, `Render` is pure over its inputs regardless of the
+ambient terminal. `ColorProfile` is fresco's own type, so pinning depth needs no
+`termenv` import.
 
 ## Roadmap
 
