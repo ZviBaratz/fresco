@@ -23,6 +23,19 @@ with the pre-1.0 caveats described in
   luminance split and the hue's unresolved fallback moved. Rendered bytes change by
   design; determinism, bounds, and the tunnel's invariants still hold.
 
+- **`fresco.Galaxy`** retuned for a galaxy caught mid-turn with studded, filamentary
+  arms. Two moves: its rigid pattern rotation `galRotSpd` doubles (`1.0 → 2.0`) so the
+  spiral's turn — the roster's weakest motion — is plainly alive within a second or two
+  of viewing while staying stately rather than spinning (phase is the field's only time
+  term, so the per-frame step is far below any strobe); and the arm texture is pushed
+  from softly grainy to studded (`galTurbAmp 0.62 → 0.72`, `galKnotThr 0.68 → 0.63`,
+  `galKnotAmp 0.70 → 0.85`), so the star-forming knots read as distinct bright beads
+  strung along filamentary arms, lighting up as the density wave sweeps through the
+  static turbulence. The texture stays additive-on-peaks, so it opens no holes; the
+  bright core still outshines the disk, the arm mip/anisotropy and core-finite
+  guarantees are unchanged, and hue still moves without touching brightness. Rendered
+  bytes change by design; determinism, bounds, and the galaxy's invariants still hold.
+
 ## [1.0.0] - 2026-07-18
 
 The **1.0 release.** The public API is now stable and committed to under Semantic
