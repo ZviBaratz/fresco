@@ -209,8 +209,9 @@ go run ./.claude/skills/new-variant/preview 0.75   # pin lumRange for the sweep
   `go test -run=NONE -bench=RenderSplashVariants` — the 80×30 budget is ≤3 ms/frame,
   the 240×60 screensaver ≤16.7 ms.
 
-*(If the `terminal-animations` plugin is installed, its vhs/GIF harness records a
-shareable clip of this same look — an enhancement, never a requirement.)*
+*(If the `terminal-animations` plugin is installed, its `ansi2png.py` rasterizes that
+piped frame into a lookable PNG for the headless check above, and its vhs/GIF harness
+records a shareable clip of this look — enhancements, never requirements.)*
 
 ## Verify (the PR gates)
 
