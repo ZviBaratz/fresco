@@ -96,9 +96,17 @@ const (
 	// disc stays the same fraction of the galaxy at every size.
 	galCoreFrac = 0.05
 	// galRotSpd is the rigid pattern rotation. A ridge holds ψ constant, so the
-	// pattern turns at galRotSpd/galArms per unit phase — gentle, the way a galaxy
-	// turns, and its sign is the spin direction. Settled from the render round.
-	galRotSpd = 1.0
+	// pattern turns at galRotSpd/galArms per unit phase — a slow, hypnotic sweep, the
+	// way a galaxy turns, and its sign is the spin direction. Doubled from the original
+	// 1.0 in the re-art round: the galaxy was the roster's weakest-motion field, and at
+	// 2.0 the turn is plainly alive within a second or two of viewing while staying
+	// stately rather than spinning — a density wave, not a pinwheel. It only ever
+	// re-orients a self-similar log spiral, so any amount of accumulated rotation still
+	// reads as the same galaxy, and the ceiling here is aesthetic, not aliasing: phase
+	// is the field's ONLY time term (the turbulence is static), so a frame advances the
+	// pattern just galRotSpd·driftPerFrame/galArms radians, far below any temporal
+	// strobe. Settled by rendering the turning filmstrip and looking.
+	galRotSpd = 2.0
 	// The turbulence: a static fBm the arms are mottled by and, at its peaks, studded
 	// with bright knots. It is the detail — smooth raised-cosine arms read flat, while
 	// a real spiral's arms are grainy, filamentary and knotted with star-forming
@@ -109,6 +117,17 @@ const (
 	// floor would read as a hole. galKnotThr/galKnotAmp are where the turbulence tips
 	// over into a knot, and how bright.
 	//
+	// The re-art round pushed all three up together — galTurbAmp 0.62→0.72, galKnotThr
+	// 0.68→0.63, galKnotAmp 0.70→0.85 — so the arms read as *studded and filamentary*
+	// rather than softly grainy: the lower threshold lets more of the field tip into
+	// knots, and the brighter gain makes each a distinct bead the way a real spiral's
+	// star-forming regions string along its arms. It stays additive-on-peaks (the lows
+	// never dim the arm), so the extra contrast opens no holes — the bright core still
+	// outshines the disk and the azimuthal arm/lane swing still clears its floor, both
+	// pinned in galaxy_test.go. Settled by rendering the disk at 96×30 and 240×60 and
+	// looking; paired with the faster galRotSpd, the knots now visibly light along the
+	// arms as the density wave sweeps through the static field.
+	//
 	// It is deliberately fixed in screen space rather than turned with the disk: the
 	// arms sweep *through* a static field, so its fine detail never moves and so can
 	// never wagon-wheel, which is what lets the frequency be high enough to read as
@@ -116,9 +135,9 @@ const (
 	galTurbFreq = 0.13
 	galTurbOct  = 5
 	galTurbGain = 0.55
-	galTurbAmp  = 0.62
-	galKnotThr  = 0.68
-	galKnotAmp  = 0.7
+	galTurbAmp  = 0.72
+	galKnotThr  = 0.63
+	galKnotAmp  = 0.85
 	// Colour beyond the radial sweep: the arms lean cooler (galArmHue: young blue
 	// stars) and the turbulence mottles the hue into warm/cool patches (galTurbHue), so
 	// the disk works the whole palette instead of a clean gradient. Both are gentle —
