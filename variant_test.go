@@ -37,11 +37,12 @@ func TestShippedVariantsOps(t *testing.T) {
 	}
 	want := map[Variant]policy{
 		// Rain and the tunnel are the moving fields: the eye tracks them, so a fixed
-		// star reads as a stuck pixel. Both put all their brightness on the colour —
-		// rain because a constant-weight katakana cannot shade by size, the tunnel
-		// because its fog is a gradient with no stipple to spend on the trade.
+		// star reads as a stuck pixel. Rain puts all its brightness on the colour
+		// because a constant-weight katakana cannot shade by size; the tunnel's ring
+		// texture, unlike its fog, does have stipple to spend, so it sits at 0.75 and
+		// the rings read as a tactile surface (see ops).
 		Rain:   {stars: false, lumRange: 1},
-		Tunnel: {stars: false, lumRange: 1},
+		Tunnel: {stars: false, lumRange: 0.75},
 		// Ripple is the one field that is both in motion and starry, because nothing
 		// in it travels except the rings and a still pool reflects a still sky. It is
 		// also the only one at neither end of the luminance split: its crests keep the

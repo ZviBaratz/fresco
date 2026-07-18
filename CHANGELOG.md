@@ -9,6 +9,20 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Changed
+
+- **`fresco.Tunnel`** retuned for a warmer, textured corridor. Its `lumRange` moves
+  from `1` to `0.75`, so the ring texture takes the glyph-density ramp
+  (`o → O → 0 → @`) and reads as a tactile, receding surface rather than a flat
+  field of a single `@`; and the depth hue now relaxes to a warm base
+  (`tunHueBase`) where the sampling-rate mip leaves the sweep unresolved — the near
+  field and, on a real pane, most of the view — so the corridor reads as a warm
+  interior receding into the cool cyan rings that survive out where the sweep
+  resolves, instead of a uniform purple-blue wash. The field's brightness (the fog
+  depth cue) and its mip/angular-seam guarantees are unchanged; only the Pass-2
+  luminance split and the hue's unresolved fallback moved. Rendered bytes change by
+  design; determinism, bounds, and the tunnel's invariants still hold.
+
 ## [1.0.0] - 2026-07-18
 
 The **1.0 release.** The public API is now stable and committed to under Semantic
