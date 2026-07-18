@@ -11,9 +11,9 @@
 
 **Generative, free-running animated fields for the terminal.** fresco paints the
 whole pane with a slow-drifting, theme-coloured procedural field — a nebula, a
-receding tunnel, a pool of ripples, a turning galaxy, a sky of polar curtains — as plain ANSI text. It is
-a pure rendering engine, not a widget: you give it a size and a frame number, it
-hands you a string.
+receding tunnel, a pool of ripples, a turning galaxy, a sky of polar curtains —
+as plain ANSI text. It is a pure rendering engine, not a widget: you give it a
+size and a frame number, it hands you a string.
 
 ```go
 frame := fresco.Render(width, height, tick, fresco.Options{
