@@ -53,6 +53,11 @@ func TestShippedVariantsOps(t *testing.T) {
 		// Its brightness (bulge to arms to lanes) is the whole subject, split between
 		// the density ramp and the colour's luminance at 0.75 so the arms keep texture.
 		Galaxy: {stars: false, lumRange: 0.75},
+		// Aurora is a drifting field, so no starfield (stuck pixels). Its curtains are a
+		// smooth glow that is all brightness and no structure, so it rides the colour's
+		// luminance heavily — the sweep landed on 0.75 so the filament cores keep a
+		// little density ramp while the halo stays a wash (see ops).
+		Aurora: {stars: false, lumRange: 0.75},
 	}
 	require.Len(t, want, int(variantCount),
 		"every variant needs an explicit policy here — a new one must make these "+
