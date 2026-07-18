@@ -9,6 +9,21 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-18
+
+The **1.0 release.** The public API is now stable and committed to under Semantic
+Versioning: `Render`, `AppendRender`, `Options`, `Palette` (+ `Validate`), the
+`Variant` set (+ `Variants`, `ParseVariant`, `String`), and the `ColorProfile`
+enum. No exported identifier will be renamed, removed, or retyped before a
+`2.0.0`; new variants, options, profiles, and methods may still be added, since
+those are additive. The core contract is unchanged and now permanent: `Render`
+and `AppendRender` are pure over their inputs and emit exactly `h` lines of
+exactly `w` visible cells, never erroring or panicking on any `Options` — a
+malformed `Palette` degrades to documented fallbacks, and `Palette.Validate` is
+the opt-in check. The surface was validated against its real downstream consumer
+(atrium bumped to `v0.3.0` with zero code changes) and given a final last-look
+review before freezing; see [`docs/api-review-v1.0.md`](docs/api-review-v1.0.md).
+
 ### Added
 
 - **`fresco.Aurora`** — a fifth splash variant: northern-lights curtains that drift
@@ -110,7 +125,8 @@ glance.
   `Options` / `Palette` API, automatic terminal colour-profile detection, and
   the `cmd/fresco-demo` runnable demo.
 
-[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ZviBaratz/fresco/compare/v0.3.0...v1.0.0
 [0.3.0]: https://github.com/ZviBaratz/fresco/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ZviBaratz/fresco/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ZviBaratz/fresco/releases/tag/v0.1.0
