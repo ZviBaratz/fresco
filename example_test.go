@@ -60,4 +60,5 @@ func ExampleVariants() {
 	// tunnel
 	// ripple
 	// galaxy
+	// aurora
 }

@@ -40,6 +40,13 @@ const (
 	// arms are a rigidly rotating density wave rather than winding matter (see
 	// splashGalaxyAtFor).
 	Galaxy
+	// Aurora ("j") is a sky of polar light: tall curtains that drift sideways as a
+	// body while each one's spine snakes, hung over dark sky with the hue sliding
+	// warm↔cool by altitude. The roster's weather entry, and rain's absolute-field
+	// sibling — a bigger pane shows more sky rather than the same object scaled up,
+	// and its hue is a property of altitude rather than of any object's radius (see
+	// splashAuroraAt).
+	Aurora
 
 	// variantCount is the enum's cardinality, not a variant — it must stay last.
 	// It exists so the tests can prove they cover every variant: the contract
@@ -55,6 +62,7 @@ const (
 // panel): the two lists are hand-maintained in packages that cannot import each
 // other, and app asserts they agree. It backs both ParseVariant and String.
 var variantNames = map[string]Variant{
+	"aurora": Aurora,
 	"galaxy": Galaxy,
 	"rain":   Rain,
 	"ripple": Ripple,
@@ -65,7 +73,7 @@ var variantNames = map[string]Variant{
 // from. The order is the rotation order; the returned slice is a fresh copy, so
 // callers cannot mutate the pool.
 func Variants() []Variant {
-	return []Variant{Rain, Tunnel, Ripple, Galaxy}
+	return []Variant{Rain, Tunnel, Ripple, Galaxy, Aurora}
 }
 
 // String returns the variant's pinnable pattern name, or "unknown" for a value
@@ -179,6 +187,21 @@ func (v Variant) ops() splashOps {
 			// arms want the density ramp too: at 0.75 the bright arms step o → O → 0 → @
 			// across their width while the faint disk rides the colour's luminance, the
 			// textured spiral a photo has and the value the rendered sweep landed on.
+			lumRange: 0.75,
+		}
+	case Aurora:
+		return splashOps{
+			// A drifting field of light: fixed star glyphs punched over it would read
+			// as stuck pixels the way they do on rain and the tunnel, and the curtains
+			// are the twinkle already. So no starfield.
+			stars: false,
+			// The curtains are a smooth glow with no structure the density ramp could
+			// carry, so brightness belongs almost entirely to the colour's luminance —
+			// at a low lumRange the fading edge of every curtain would break into the
+			// scatter of dots that is this palette's whole defect. Chosen from the
+			// rendered {0, 0.5, 0.75, 1} colour sweep, where 0.75 kept a little of the
+			// density ramp in the bright filament cores while the soft halo stayed a
+			// smooth wash rather than confetti.
 			lumRange: 0.75,
 		}
 	default:

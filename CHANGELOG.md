@@ -9,6 +9,15 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Added
+
+- **`fresco.Aurora`** — a fifth splash variant: northern-lights curtains that drift
+  slowly sideways over dark sky and snake as they go, the hue sliding warm→cool with
+  altitude. An absolute field like `Rain` and `Ripple` (a bigger pane shows more
+  sky), shaded at `lumRange` 0.75 so the filament cores keep the density ramp while
+  the soft halo rides the colour. Registered in `Variants()`, `ParseVariant`, and
+  the rotation.
+
 ## [0.3.0] - 2026-07-17
 
 The **"Refine & prove"** release. It settles the pre-1.0 API — a fresco-owned

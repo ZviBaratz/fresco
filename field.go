@@ -131,6 +131,10 @@ func splashFieldAt(v Variant, maxD float64) splashPointFn {
 		return splashRippleAt
 	case Galaxy:
 		return splashGalaxyAtFor(maxD)
+	case Aurora:
+		// Absolute field, so maxD is unused: the curtains are drawn in absolute cells
+		// like rain's streams and ripple's drops (see splashAuroraAt).
+		return splashAuroraAt
 	default:
 		// Rain, and the fallback for a variant that forgot its case here.
 		//

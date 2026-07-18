@@ -11,9 +11,9 @@
 
 **Generative, free-running animated fields for the terminal.** fresco paints the
 whole pane with a slow-drifting, theme-coloured procedural field — a nebula, a
-receding tunnel, a pool of ripples, a turning galaxy — as plain ANSI text. It is
-a pure rendering engine, not a widget: you give it a size and a frame number, it
-hands you a string.
+receding tunnel, a pool of ripples, a turning galaxy, a sky of polar curtains —
+as plain ANSI text. It is a pure rendering engine, not a widget: you give it a
+size and a frame number, it hands you a string.
 
 ```go
 frame := fresco.Render(width, height, tick, fresco.Options{
@@ -58,6 +58,7 @@ Requires Go 1.25+. Depends only on the Charm colour stack (`lipgloss`,
 | `fresco.Tunnel` | A textured wall flying past a vanishing point — screen position maps to (depth, angle), z-fog carries distance in luminance, hue bands by depth. |
 | `fresco.Ripple` | Drops falling on a dark pool — each flashes where it lands and expands into a hue-shifting ring; rings interfere where they cross. |
 | `fresco.Galaxy` | An inclined spiral turning on the focal point — soft arms, a bright core, an occluding dust lane for depth. |
+| `fresco.Aurora` | Northern-lights curtains over dark sky — tall vertical drapes that snake and drift sideways, the hue sliding warm↔cool with altitude. |
 
 `fresco.Variants()` returns them all (the natural rotation order);
 `fresco.ParseVariant("ripple")` resolves a name.
@@ -103,7 +104,7 @@ byte-identical.
 ```go
 type Options struct {
 	Palette  Palette      // the five colour anchors (required for colour)
-	Variant  Variant      // Rain, Tunnel, Ripple, or Galaxy
+	Variant  Variant      // Rain, Tunnel, Ripple, Galaxy, or Aurora
 	FocalRow int          // the row the field emanates from; negative = centre
 	LumRange *float64     // optional override for the density↔luminance split
 	Profile  ColorProfile // colour depth; the zero value Auto = auto-detect
