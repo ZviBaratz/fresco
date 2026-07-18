@@ -131,9 +131,9 @@ type splashOps struct {
 //
 // Every variant states both fields as a literal, and the roster table
 // (TestShippedVariantsOps) pins them per variant, so a new one has to make an
-// explicit choice rather than inherit whatever the zero value happens to be. Rain
-// and the tunnel currently agree on both and are still written out separately on
-// purpose: merging them would silently move one when the other is retuned.
+// explicit choice rather than inherit whatever the zero value happens to be. Each
+// case is written out in full even where two currently coincide, so that retuning
+// one variant can never silently move another's policy.
 func (v Variant) ops() splashOps {
 	switch v {
 	case Tunnel:
@@ -143,13 +143,17 @@ func (v Variant) ops() splashOps {
 			// than as a pattern. This is the variant's whole premise, so it is not
 			// a preference.
 			stars: false,
-			// The fog is a gradient with no stipple to spend, so it is exactly what
-			// the luminance channel was built for. Density cannot carry depth here:
-			// "dim" would mean "small", and a far wall would read as a scatter of
-			// dots rather than as distance. Chosen from a rendered sweep of
-			// {0, 0.5, 0.75, 1}, not from the arithmetic — at 1 the glyph is a
-			// constant '@' and every bit of the corridor is drawn in colour.
-			lumRange: 1,
+			// The fog is a gradient, but the wall texture riding it is not — it is
+			// rings, and rings have stipple to spend. At 1 every cell was a constant
+			// '@' and the corridor was a flat colour field; at 0.75 the ring texture
+			// steps o → O → 0 → @ across each band so the wall reads as a tactile,
+			// receding surface, while the fog keeps enough of the depth cue in the
+			// colour's luminance that a far wall still dims rather than breaking into
+			// a scatter of dots. Depth is still luminance, not density — this only
+			// lends the wall the ring texture the earlier flat '@' threw away. Chosen
+			// from the rendered {0, 0.5, 0.75, 1} sweep, the same way ripple's rings
+			// landed on 0.75.
+			lumRange: 0.75,
 		}
 	case Ripple:
 		return splashOps{

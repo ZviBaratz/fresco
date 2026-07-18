@@ -95,6 +95,15 @@ const (
 	// 1/tunHueF units of u, which is what makes the corridor read as coloured
 	// rings receding rather than as a single wash.
 	tunHueF = 1.0
+	// tunHueBase is the gradient position hue relaxes to where the depth sweep is
+	// unresolved (see the hue lod in splashTunnelAtFor). It leans warm, toward the
+	// A0 end, rather than sitting at the gradient's 0.5 midpoint: on a real pane
+	// most cells are in the mip-damped band, and a 0.5 fallback painted the whole
+	// interior a flat purple-blue that buried the palette's warm anchor. At 0.32
+	// the corridor reads as a warm core receding into the cool cyan rings that
+	// survive out where the sweep resolves. Chosen by rendering the warm↔mid sweep
+	// and looking; it moves only the unresolved fallback, never the resolved sweep.
+	tunHueBase = 0.32
 
 	// Motion. u carries the fly, a carries the roll, and the centre banks.
 	tunFlySpd   = 1.4
@@ -305,7 +314,15 @@ func splashTunnelAtFor(maxD float64) splashPointFn {
 		// wall, and the wall's mip does nothing for a channel it does not touch.
 		// The fog blanks most of that region, but the band where fog is small and
 		// non-zero would alias into dim rainbow confetti. One mip, both channels.
-		hue := 0.5 + clamp01(mipBase/tunHueF)*(splashTri(u*tunHueF+phase*tunHueSpd)-0.5)
+		//
+		// The lod fades hue toward tunHueBase, not the gradient's midpoint. Where a
+		// band resolves (lod → 1) the depth triangle sweeps the full gradient
+		// unchanged; where it does not — the near field and, on a real pane, most of
+		// the view — hue settles at the warm base instead of the purple-blue mid, so
+		// the corridor reads as a warm interior receding into cool cyan rings rather
+		// than a uniform blue wash. It moves only the *unresolved* fallback: the
+		// anti-confetti spread the mip guarantees is a bound on variation, untouched.
+		hue := tunHueBase + clamp01(mipBase/tunHueF)*(splashTri(u*tunHueF+phase*tunHueSpd)-tunHueBase)
 
 		return clamp01(wall * fog), clamp01(hue)
 	}
