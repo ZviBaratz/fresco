@@ -378,7 +378,9 @@ func TestSplashRippleCombinesBySignedSum(t *testing.T) {
 // passes through zero, and inside an overlap the winner changes at every one of
 // those nodes — hue would flip in bands through exactly the cells this variant
 // is most interested in. The weighted mean agrees wherever one drop dominates
-// and blends where none does.
+// and blends where none does. That mean is then rebased onto the ring's visible
+// life, [rippleHueOpen, 1], so a ring travels the whole warm→cool gradient across
+// its life rather than only the cool end left after the disc — see splashRippleSum.
 func TestSplashRippleHueIsTheWeightedRingAge(t *testing.T) {
 	blended := 0
 	for _, phase := range rippleTestPhases {
@@ -409,8 +411,13 @@ func TestSplashRippleHueIsTheWeightedRingAge(t *testing.T) {
 					require.Zerof(t, aux, "the still pool carries no hue at (%v,%v)", dx, dy)
 					continue
 				}
-				require.InDeltaf(t, tsum/wsum, aux, 1e-12,
-					"aux must be the contribution-weighted mean ring age at (%v,%v) phase %v", dx, dy, phase)
+				// The published hue is the weighted mean rebased onto the ring's
+				// visible life, [rippleHueOpen, 1] (see splashRippleSum), so a ring
+				// wears the whole gradient rather than only its cool end.
+				wantAux := clamp01((tsum/wsum - rippleHueOpen) / (1 - rippleHueOpen))
+				require.InDeltaf(t, wantAux, aux, 1e-12,
+					"aux must be the contribution-weighted mean ring age, rebased onto "+
+						"[rippleHueOpen,1], at (%v,%v) phase %v", dx, dy, phase)
 
 				// A cell where the two rules disagree: the mean must not be the winner's.
 				if n >= 2 && math.Abs(tsum/wsum-bestT) > 0.05 {
@@ -614,8 +621,9 @@ func TestSplashRippleRendersTheFadeNotAThreshold(t *testing.T) {
 // differently-shaped distributions — if the far cells happened to skew toward
 // the band's dim end the test would read that as an envelope — so the band is
 // kept to a couple of luminance stops and the sample is made up from several
-// frames instead. The old dim would have dropped the far band ~2 stops, which
-// this separates comfortably.
+// frames instead — six of them since this re-art's dimmer pool (see rippleAmp)
+// puts fewer cells in any one narrow band. The old dim would have dropped the far
+// band ~2 stops, which this separates comfortably.
 func TestSplashRippleRendersDropsTheSameEverywhere(t *testing.T) {
 	withColorProfile(t, termenv.TrueColor)
 	const w, h = 240, 60
@@ -624,7 +632,7 @@ func TestSplashRippleRendersDropsTheSameEverywhere(t *testing.T) {
 	maxD := math.Hypot(math.Max(cx, float64(w-1)-cx), math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
 
 	nearSum, nearN, farSum, farN := 0.0, 0, 0.0, 0
-	for _, frame := range []int{60, 300, 700, 1500} {
+	for _, frame := range []int{60, 300, 700, 1100, 1500, 2000} {
 		stops, _ := shadeStopGrid(t, w, h, frame, pal, Ripple)
 		vals := rippleFieldVals(w, h, frame)
 		for row := 0; row < h; row++ {

@@ -36,6 +36,27 @@ with the pre-1.0 caveats described in
   guarantees are unchanged, and hue still moves without touching brightness. Rendered
   bytes change by design; determinism, bounds, and the galaxy's invariants still hold.
 
+- **`fresco.Ripple`** retuned to make its interference pattern — the field's jewel —
+  read, in three moves. Its crest amplitude `rippleAmp` drops (`0.85 → 0.65`) to open
+  headroom under the clamp: at `0.85` the render curve already sent a lone crest to
+  within a hair of a doubled one, so the bright nodes where rings add did not stand
+  out; the lower value opens that gap and lights the constructive lattice against the
+  lone rings (the pool dims a little, the trade that keeps the fixed stars from
+  outshining the water). Its carrier `rippleCyc` rises (`1.5 → 1.8`), deepening the
+  packet's trough (`41% → 54%` of the crest) so the cancellation nodes where two rings
+  meet out of phase darken and `|sum|` reads as a pattern rather than a stack of
+  circles, and giving each drop a second, fainter concentric wavefront — the train a
+  real drop throws. And the ring's hue is rebased onto its *visible* life
+  (`rippleHueOpen`): a drop is a filled disc for its first ~38% and only an expanding
+  ring after, so the raw age-hue spent its whole warm end on the disc and left the ring
+  the cool `60%` of the gradient — rebasing hands the expanding ring the whole
+  warm→cool journey, so a ring's age reads across its life. Separately the starfield —
+  ripple's alone among the variants — is thinned (`starThreshold 0.986 → 0.992`) from a
+  competing sparkle layer into a faint still sky the rings sit in front of. The `|sum|`
+  interference, the exact 3×3×2 spawn window, the compact-support packet, and purity
+  are unchanged. Rendered bytes change by design; determinism, bounds, and ripple's
+  invariants still hold.
+
 ## [1.0.0] - 2026-07-18
 
 The **1.0 release.** The public API is now stable and committed to under Semantic
