@@ -195,8 +195,9 @@ go run ./…/preview -variant veil -w 240 -h 60    # the other size (§ below)
 ```
 
 (`./…/preview` is `./.claude/skills/new-variant/preview`; `-h` is the pane height,
-so `flag`'s usage text is on `--help`.) Piped or redirected it emits frames and
-exits; on a TTY with no `-frames` it runs the live loop.
+so `flag`'s usage text is on `--help`; `veil` is §4's example name — **substitute
+your own**, as `veil` itself is not registered and exits 2.) Piped or redirected it
+emits frames and exits; on a TTY with no `-frames` it runs the live loop.
 
 - **Inner loop:** run it, watch the *colour* animation move. Then run the sweep —
   the same command with `-lum 0`, `0.5`, `0.75`, `1` — and pick `lumRange` by eye (§3).
@@ -224,10 +225,11 @@ never requirements.)*
 
 > **Settle `lumRange` from `-mono`, not from a PNG.** A rasterizer draws one flat
 > colour per cell, so it approximates the glyph ramp at best and cannot resolve it the
-> way a terminal does — and `lumRange` *is* the ramp. Older rasterizers painted every
-> glyph as a solid block of its fg colour, which made `-lum 0` render as a gorgeous
-> full-bleed field when the terminal truth is a faint dust of `·` and `:`; that gate
-> ranked the sweep backwards. Use the PNG for **hue, negative space and motion**, and
+> way a terminal does — and `lumRange` *is* the ramp. The shipped `ansi2png.py` still
+> paints every glyph as a solid block of its fg colour (the ink-coverage fix is
+> unmerged), which makes `-lum 0` render as a gorgeous full-bleed field when the
+> terminal truth is a faint dust of `·` and `:`; that gate ranks the sweep
+> **backwards**. Use the PNG for **hue, negative space and motion**, and
 > the `-mono` glyph grid for **density**. When they disagree, the glyph grid wins —
 > it is the thing a terminal actually prints.
 

@@ -34,6 +34,10 @@
 //	go run ./.claude/skills/new-variant/preview -variant veil -w 30 -h 10
 //	go run ./.claude/skills/new-variant/preview -variant veil -w 240 -h 60
 //
+// `veil` throughout is SKILL.md §4's worked-example name — substitute your own
+// registered variant. It is deliberately not in the roster, so the commands above
+// are templates, not copy-paste: run verbatim they exit 2 and list the real set.
+//
 // Every knob is a flag: the variant is *not* pinned in the source. An earlier
 // version of this program hardcoded one, and every authoring session that reached
 // for it had to edit the source first — so sessions wrote their own throwaway
@@ -56,9 +60,12 @@ import (
 // A real lumRange is in [0,1], so a negative value cannot collide with one.
 const lumUnset = -1
 
-// defaultFrame is a mid-animation frame rather than 0, because frame 0 is
-// degenerate for some fields — ripple's drops have zero radius at phase 0, so a
-// still of frame 0 is an empty pool and reads as a broken variant.
+// defaultFrame is an arbitrary mid-animation frame. No shipped field is
+// degenerate at frame 0 — ripple's drop births are hash-distributed across each
+// epoch, so phase 0 already carries established rings from the previous one, and
+// measured lit-glyph counts at frame 0 sit inside each variant's normal range
+// (aurora is at its *densest* there). Any frame is representative, so if a still
+// looks wrong, re-run with -frame before suspecting the field.
 const defaultFrame = 42
 
 func main() {
