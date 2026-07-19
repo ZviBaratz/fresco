@@ -14,7 +14,7 @@ type Variant int
 
 const (
 	// Rain ("f") is Matrix-style digital rain: per-column streams with bright
-	// heads and fading tails, layered at three depths. The roster's motion entry
+	// heads and fading tails, layered at four depths. The roster's motion entry
 	// — and the only variant that shades by luminance alone, with no hue of its
 	// own to spend (see buildRainRamp).
 	//
