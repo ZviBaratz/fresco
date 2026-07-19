@@ -183,19 +183,27 @@ structure (NoColor) plus its passing tests, and never once seeing the hue the
 This skill ships the preview program at `preview/main.go`. It lives inside the
 module, so `go run` it by path and the import resolves to your **local in-progress
 variant** — no temp dir, no `go.mod`, no `replace` — while the dot-directory keeps
-it out of `go build ./...`, the tests, and the linter. Point its `Variant` field
-at yours, then:
+it out of `go build ./...`, the tests, and the linter. Every knob is a flag, so
+there is no source to edit before running it:
 
 ```sh
-go run ./.claude/skills/new-variant/preview        # live: watch the colour move
-go run ./.claude/skills/new-variant/preview 0.75   # pin lumRange for the sweep
+go run ./…/preview -variant veil                 # live: watch the colour move
+go run ./…/preview -variant veil -lum 0.75       # pin lumRange for the sweep
+go run ./…/preview -variant veil -mono           # the glyph grid (no colour)
+go run ./…/preview -variant veil -frames 6       # a filmstrip, one frame per header
+go run ./…/preview -variant veil -w 240 -h 60    # the other size (§ below)
 ```
 
+(`./…/preview` is `./.claude/skills/new-variant/preview`; `-h` is the pane height,
+so `flag`'s usage text is on `--help`.) Piped or redirected it emits frames and
+exits; on a TTY with no `-frames` it runs the live loop.
+
 - **Inner loop:** run it, watch the *colour* animation move. Then run the sweep —
-  the same command with `0`, `0.5`, `0.75`, `1` — and pick `lumRange` by eye (§3).
+  the same command with `-lum 0`, `0.5`, `0.75`, `1` — and pick `lumRange` by eye (§3).
 - **No live terminal (an agent, CI, a non-TTY)?** You still cannot skip the colour.
-  Piped or redirected, the program emits **one `TrueColor` frame and exits**, so
-  `go run ./.claude/skills/new-variant/preview 0.75 | …` hands you the *emitted*
+  Piped or redirected, the program emits **frames and exits** (one by default,
+  `-frames N` for a filmstrip), so `go run ./…/preview -variant veil -lum 0.75 | …`
+  hands you the *emitted*
   bytes to inspect: confirm SGR colour is present (`\x1b[38;2;` runs), and that the
   foreground hue **varies across the field the way your `aux` dictates** — e.g.
   sample the fg colour along the axis your `aux` maps and check it tracks the
@@ -210,8 +218,18 @@ go run ./.claude/skills/new-variant/preview 0.75   # pin lumRange for the sweep
   the 240×60 screensaver ≤16.7 ms.
 
 *(If the `terminal-animations` plugin is installed, its `ansi2png.py` rasterizes that
-piped frame into a lookable PNG for the headless check above, and its vhs/GIF harness
-records a shareable clip of this look — enhancements, never requirements.)*
+piped frame — or a `-frames N` filmstrip — into a lookable PNG for the headless check
+above, and its vhs/GIF harness records a shareable clip of this look — enhancements,
+never requirements.)*
+
+> **Settle `lumRange` from `-mono`, not from a PNG.** A rasterizer draws one flat
+> colour per cell, so it approximates the glyph ramp at best and cannot resolve it the
+> way a terminal does — and `lumRange` *is* the ramp. Older rasterizers painted every
+> glyph as a solid block of its fg colour, which made `-lum 0` render as a gorgeous
+> full-bleed field when the terminal truth is a faint dust of `·` and `:`; that gate
+> ranked the sweep backwards. Use the PNG for **hue, negative space and motion**, and
+> the `-mono` glyph grid for **density**. When they disagree, the glyph grid wins —
+> it is the thing a terminal actually prints.
 
 ## Verify (the PR gates)
 
