@@ -257,6 +257,7 @@ never byte-snapshotted). So a green suite tells you almost nothing here. What mo
 | `lumRange` / `stars` | the `case` in `Variant.ops()` **and** the `want` row in `TestShippedVariantsOps` | the test names it |
 | what the variant *is* — layer count, "three depths", the described look | the exported const's **doc comment** (`variant.go`) **and** its `README.md` table row | **none** — rain's "three depths" survived a retune to four only because a reviewer caught it |
 | a constant in shared code (`lut.go`'s `starThreshold`) | confirm no other variant reads it — then it is yours to spend | **none** |
+| a constant other comments compute from | every **derived figure** citing it, in `<name>.go` *and* `<name>_test.go` — `grep` the constant's name and re-run the arithmetic | **none** |
 | anything at all | a `### Changed` entry in `CHANGELOG.md` `[Unreleased]` (not `### Added`) | **none** |
 | point-function constants only | nothing else — that is the healthy shape | — |
 
@@ -315,6 +316,17 @@ frame 0 that does not exist. Two more are disputed and unresolved: galaxy's
 "distinct bright beads" (`CHANGELOG.md`) and tunnel's "the black core stays ~18% of
 the radius" (`tunnel.go`), both flagged by a retuner who could not reproduce them.
 
+**A closed form goes stale when its inputs move, and it still looks right.** The
+sharpest case found so far reads as impeccable: `ripple_test.go` derives its
+worst-case row-pitch capture as `(1-0.1^2)^2*cos(0.15pi)` = 87.3%, and says
+explicitly that it is a closed form rather than a measurement. The algebra is
+correct and reproduces to the digit — but the `0.15` is `0.1 × rippleCyc`, written
+when `rippleCyc` was `1.5`. PR #49 moved it to `1.8` and the figure was never
+recomputed: the shipped value is **82.8%**. A number that checks out arithmetically
+can still be false, so re-derive it from the constants *as they are now*. When your
+measurement disagrees with a documented closed form, the disagreement is the
+finding — resolve which is stale before overwriting either.
+
 Treat every quantitative "because" in a comment, CHANGELOG or PR body you are about
 to build on as **a claim to check, not context** — they are cheap to render and
 they get cited. If you cannot reproduce one, say so and replace it; an honest
@@ -325,6 +337,12 @@ finished documenting the same failure in someone else's work.
 ### A sweep is four values and two rejected neighbours
 
 "Rendered before and after" is not a sweep, and it is what this step decays into.
+§3 says to lift a constant to a `var` while you tune it; retuning one that already
+ships, you can leave it a `const` and swap the value in place per candidate —
+`sed -i 's/rippleCyc = 1.8/rippleCyc = 2.0/' ripple.go`, rebuild, render, revert.
+Either way, **do not `git stash` mid-sweep**: it takes unrelated pending edits with
+it and you will compare against the wrong tree.
+
 Render at least four candidates, and record **the neighbours you rejected and what
 you saw at them** — that is what makes the value defensible and reproducible. Rain
 is the model: `4.5 → 10.1, 3.2 → 28.4, 2.9 → 34.5, 2.6 → 40.6`, shipped at 2.9, and
