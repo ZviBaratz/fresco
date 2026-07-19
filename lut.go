@@ -101,7 +101,14 @@ const (
 	// (including its dark voids) for depth. starThreshold sets rarity (higher →
 	// fewer stars), starRamp maps twinkle→glyph, and stars are drawn in a bright
 	// near-white so they read as starlight in front of the colored gas.
-	starThreshold    = 0.986
+	//
+	// Only ripple keeps the starfield (a still pool reflects a still sky), so this
+	// rarity is tuned to it: at 0.986 the bright points crowded the interference and
+	// read as a competing layer, and 0.992 thins them to a faint sky the rings sit
+	// in front of. It stays a shared constant because it is a property of the star
+	// draw, not of ripple's field — no other variant sets stars, so it is theirs to
+	// spend.
+	starThreshold    = 0.992
 	starTwinkleSpeed = 1.7
 	starPhaseScatter = 137.0 // desyncs twinkles so stars don't pulse in unison
 	starRamp         = " ·+*"

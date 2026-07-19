@@ -33,18 +33,20 @@ const (
 	// the only defence is to draw the ring coarse enough to sample.
 	//
 	// The rendered structure is |cos| of the carrier, whose period is
-	// rippleW/rippleCyc aspect units — here 6.67, i.e. 3.3 rows vertically and
-	// 6.7 columns horizontally, which is the same distance on a 2:1 cell and is
+	// rippleW/rippleCyc aspect units — here 5.56, i.e. 2.78 rows vertically and
+	// 5.56 columns horizontally, which is the same distance on a 2:1 cell and is
 	// exactly what cellAspect exists to make true.
 	//
-	// That leaves ~3.3 samples per band on the worse axis, and what settles
+	// That leaves ~2.8 samples per band on the worse axis, and what settles
 	// whether that is enough is the crest's own width rather than the ratio. The
 	// row grid steps x = (d-crest)/rippleW by cellAspect/rippleW = 0.2, so the
 	// worst alignment straddles the peak at x = ±0.1 and reads
-	// (1-0.1^2)^2 * cos(0.15pi) = 87.3% of it — comfortably enough that a ring
+	// (1-0.1^2)^2 * cos(0.18pi) = 82.8% of it — comfortably enough that a ring
 	// cannot fall between two rows and blink, which is what rain's heads did.
-	// Narrow the packet and that capture falls off (at rippleW 6 it is 67%); see
-	// TestSplashRippleCrestSurvivesTheRowPitch, which pins it.
+	// Narrow the packet and that capture falls off (at rippleW 6 it is 56%); see
+	// TestSplashRippleCrestSurvivesTheRowPitch, which pins it. Note the margin is
+	// thinner than it reads: the wider carrier (see rippleCyc) spends band period,
+	// so this is the axis that would bite first if rippleW narrowed or rippleCyc rose.
 	rippleW = 10.0
 	// rippleCyc is how many carrier half-cycles fit between the crest and the
 	// packet's edge. The carrier is what makes this a wave rather than a bump,
@@ -56,19 +58,27 @@ const (
 	// that because the obvious story — "below some cycle count the trough falls
 	// under the envelope's root and the packet goes positive" — is false.
 	// Measured, the packet's minimum as a share of its crest runs 15% at cyc 1.0,
-	// 29% at 1.25, 41% at 1.5 and 61% at 2: a smooth curve with no threshold
-	// anywhere in it. So this is a choice about how hard rings cancel, and the
-	// floor in TestSplashRipplePacketIsCompactAndSigned pins that choice rather
-	// than a cliff.
+	// 29% at 1.25, 41% at 1.5, 54% at 1.8 and 61% at 2: a smooth curve with no
+	// threshold anywhere in it. So this is a choice about how hard rings cancel,
+	// and the floor in TestSplashRipplePacketIsCompactAndSigned pins that choice
+	// rather than a cliff.
+	//
+	// 1.8 is up from the 1.5 this field first shipped, and both effects of the
+	// climb serve the same end — legible interference. The deeper trough (41% to
+	// 54% of the crest) darkens the cancellation nodes where two rings meet out of
+	// phase, so |sum| reads as a pattern rather than a stack of circles; and the
+	// extra half-cycle gives each drop a second, fainter concentric wavefront, the
+	// train a real drop throws rather than a lone expanding hoop.
 	//
 	// (The minimum does not sit where the carrier's own trough does. The envelope
-	// is already falling there, so the product turns over earlier — at 1.5 it is
-	// at x = 0.54, not at the carrier's 2/3.)
+	// is already falling there, so the product turns over earlier — at 1.8 it is
+	// at x = 0.48, not at the carrier's 0.56.)
 	//
 	// What bounds it from above is the grid: the rendered band period is
 	// rippleW/rippleCyc, so every extra ring per drop is bought with resolution
-	// the vertical axis only has half of. See rippleW.
-	rippleCyc = 1.5
+	// the vertical axis only has half of. At 1.8 that resolution is ~2.8 samples a
+	// band — thinner than 1.5's, still above the blink floor. See rippleW.
+	rippleCyc = 1.8
 
 	// rippleSpeed is how fast a ring's crest travels, in aspect units per phase
 	// unit. phase advances driftPerFrame (0.015) per frame at ~60fps, i.e. 0.9
@@ -76,8 +86,8 @@ const (
 	// columns a second, the unhurried spread of a drop on still water rather than
 	// a shockwave.
 	//
-	// Per frame a crest moves 0.165 units against a band period of 6.67, so a
-	// cell takes ~40 frames to cross one. That continuity is also what keeps the
+	// Per frame a crest moves 0.165 units against a band period of 5.56, so a
+	// cell takes ~34 frames to cross one. That continuity is also what keeps the
 	// frame-to-frame contract safe: a ring's radius is a continuous function of
 	// phase, so consecutive frames differ everywhere a ring is passing rather
 	// than only where some quantized counter happened to tick.
@@ -122,12 +132,30 @@ const (
 	rippleMaxR = rippleSpeed * rippleLife
 	rippleCell = rippleMaxR + rippleW
 
+	// rippleHueOpen is the age-fraction at which a drop stops being a filled disc
+	// and becomes an expanding ring — the crest clears its own half-width at age
+	// rippleW/rippleSpeed, which is rippleW/rippleMaxR of a life (here 0.38, the
+	// same 38% the fade in rippleDropWave is shaped around). splashRippleSum
+	// rebases the ring's hue onto [rippleHueOpen, 1]: without it the visible ring
+	// only ever wears the cool 60% of the gradient, because its whole warm end is
+	// spent on the disc before it opens. See the aux paragraph on splashRippleSum.
+	rippleHueOpen = rippleW / rippleMaxR
+
 	// rippleAmp is the amplitude a lone crest carries once its flash has passed,
-	// and it is under 1 on purpose: the field clamps, so a crest at 1 would
+	// and it is well under 1 on purpose: the field clamps, so a crest at 1 would
 	// render as a flat plateau with no shading in it, and — worse — two rings
 	// meeting could not read as any brighter than one. The headroom is what makes
 	// constructive interference visible.
-	rippleAmp = 0.85
+	//
+	// 0.65 is down from the 0.85 this field first shipped, and the gap is the
+	// point. The render curve is steep near the top (smoothstep sends 0.85 to 0.94
+	// but 1 to 1), so at 0.85 a lone crest already sat within a hair of a doubled
+	// one and the bright nodes where rings add did not read. Lowering it opens that
+	// gap — a crest lands at 0.65, two of them clip to 1 — so the constructive
+	// lattice lights up against the lone rings. The cost is a dimmer pool, which is
+	// why this did not go lower: past ~0.55 the lone rings thin toward outline and
+	// the fixed stars start to outshine the water.
+	rippleAmp = 0.65
 	// The impact flash: a short-lived boost at the moment a drop lands, and the
 	// difference between rain on water and a screensaver of expanding circles.
 	// It is allowed to blow past the clamp — an impact that saturates a few cells
@@ -318,6 +346,16 @@ func splashRippleAt(_, _ int, dx, dy, phase float64) (val, aux float64) {
 // weighted mean has the same limits wherever one drop dominates, and blends
 // where none does. It is 0/0 only where nothing contributes, where val is 0 and
 // no colour is emitted at all.
+//
+// That mean is then rebased onto [rippleHueOpen, 1] before it leaves. A drop is a
+// filled disc for the first rippleHueOpen of its life and only an expanding ring
+// after (see rippleHueOpen), so the raw mean keeps every visible ring in the cool
+// 60% of the gradient — its warm end is all spent on the disc, off where the crest
+// has not cleared the origin yet. Rebasing hands the ring its whole warm→cool
+// journey: it opens warm, matures through the middle and dies cool, so a ring's age
+// reads across its life instead of only over the disc. Where the mean lands below
+// rippleHueOpen — a point lit only by discs that have not opened — clamp01 holds it
+// at the warm end, which is where a just-born drop belongs.
 func splashRippleSum(dx, dy, phase float64, reach, epochs int) (val, aux float64) {
 	i0 := int(math.Floor(dx / rippleCell))
 	j0 := int(math.Floor(dy / rippleCell))
@@ -341,5 +379,5 @@ func splashRippleSum(dx, dy, phase float64, reach, epochs int) (val, aux float64
 	if wsum == 0 {
 		return 0, 0 // still pool
 	}
-	return clamp01(math.Abs(sum)), clamp01(tsum / wsum)
+	return clamp01(math.Abs(sum)), clamp01((tsum/wsum - rippleHueOpen) / (1 - rippleHueOpen))
 }
