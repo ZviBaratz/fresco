@@ -3,9 +3,11 @@ name: new-variant
 description: >-
   Use when adding, authoring, or contributing a new fresco splash *variant* — a
   new generative field for the roster (rain/tunnel/ripple/galaxy-style) — inside
-  the fresco repo (github.com/ZviBaratz/fresco). Triggers: "add a variant", "new
-  fresco field/animation", writing a splashPointFn, the propose-a-new-variant
-  issue, or building an aurora/plasma/flow/nebula-style field.
+  the fresco repo (github.com/ZviBaratz/fresco), or when retuning, re-art-directing
+  or fixing the look of a shipped one. Triggers: "add a variant", "new fresco
+  field/animation", writing a splashPointFn, the propose-a-new-variant issue,
+  building an aurora/plasma/flow/nebula-style field, or "rain/tunnel/ripple/galaxy
+  looks flat / dead / washed out / too uniform — make it read better".
 ---
 
 # Adding a fresco variant
@@ -21,6 +23,11 @@ finished once you have *watched it move, in colour, and tuned it by looking.*
 This skill is the operational path and is self-sufficient. `docs/variants.md` is
 the in-repo companion with the full worked example and the deeper "why" behind
 every rule — read it alongside this.
+
+**Retuning a variant that already ships**, rather than adding one? §1–§3 and §6
+still describe the craft and the beauty gate, but the registration and testing
+steps do not apply — go to **§7**, which covers what actually moves and why a
+green suite proves less than you think.
 
 **Core principle: premise first, arithmetic last.** You *design* the motion, then
 you *render and look*. You never settle a taste constant (`lumRange`, sharpness,
@@ -233,6 +240,117 @@ never requirements.)*
 > the `-mono` glyph grid for **density**. When they disagree, the glyph grid wins —
 > it is the thing a terminal actually prints.
 
+## 7 · Retuning a shipped variant
+
+Everything above assumes a new field. Re-art-directing an existing one — "the
+corridor reads flat", "the arms look smooth", "the depth doesn't come across" — is
+a different job with a different failure mode. The premise is settled and the code
+is green, so nothing *fails*; you are changing a field whose guards were written by
+someone who could not see the defect you are about to fix.
+
+**Determinism, bounds, animation and the point-fn range test carry over for free**
+— they hold for any pure change, and no golden frame files exist (float fields were
+never byte-snapshotted). So a green suite tells you almost nothing here. What moves:
+
+| You changed | What must move with it | The guard |
+|---|---|---|
+| `lumRange` / `stars` | the `case` in `Variant.ops()` **and** the `want` row in `TestShippedVariantsOps` | the test names it |
+| what the variant *is* — layer count, "three depths", the described look | the exported const's **doc comment** (`variant.go`) **and** its `README.md` table row | **none** — rain's "three depths" survived a retune to four only because a reviewer caught it |
+| a constant in shared code (`lut.go`'s `starThreshold`) | confirm no other variant reads it — then it is yours to spend | **none** |
+| a constant other comments compute from | every **derived figure** citing it, in `<name>.go` *and* `<name>_test.go` — `grep` the constant's name and re-run the arithmetic | **none** |
+| anything at all | a `### Changed` entry in `CHANGELOG.md` `[Unreleased]` (not `### Added`) | **none** |
+| point-function constants only | nothing else — that is the healthy shape | — |
+
+### Measure at the emitted bytes, not at the point function
+
+`field.go` runs every `val` through `intensity := smoothstep(0, 1, val)` before
+Pass 2. Smoothstep's derivative goes to zero at **both** ends, so brightnesses that
+are comfortably apart in your point function can be squeezed together on screen.
+This is not hypothetical: rain's four parallax layers are documented at L\* `81.9 /
+65.7 / 47.4 / 35.2`, measured by applying the ramp straight to each layer's
+`bright`. On screen they are `81.9 / 78.0 / 47.4 / 29.1` — the near→mid gap is
+**3.9**, not 16.2, and the field reads as three depths, not four.
+
+So: take your numbers from the **rendered** output — the `-mono` glyph grid, or the
+emitted SGR bytes decoded back to a colour — not from the field formula. If you
+need internals, write a throwaway probe in-package that reproduces the *whole*
+pipeline (contrast → vignette → `splashShade` → ramp), and delete it before you
+commit. In this worktree an untracked file is auto-staged, so deleting it from
+disk is not enough — `git rm -f <file>` clears both the index and the working
+tree. Confirm `git status --porcelain` is empty.
+
+### Assume the guard is blind until you re-derive it
+
+A bespoke invariant test is written during authoring, by someone who had not yet
+seen the failure it is meant to prevent — so it routinely cannot detect that
+failure. Both shipped examples were found the same way, by someone retuning:
+
+- `TestRainLayersSeparateInBrightness` asserts the cascade with
+  `rainStopFor(1.0*L.bright)` — Pass-1 units, upstream of the contrast curve. It
+  passes at any spacing that looks right *before* the curve.
+- Tunnel's depth test asserts `far > near + 1.5` stops (`tunnel_test.go`). A gap of
+  a stop and a half is satisfied by a corridor that spends nearly all of its
+  gradient in the first few rings and is flat thereafter — which is exactly the
+  "reads as wallpaper" complaint the test looks like it guards against.
+
+**Before you trust a green suite, re-derive what the test actually measures.** If
+it asserts in the wrong units, or its margin is satisfied by the very defect you
+are fixing, the test is the first thing to fix — strengthen it so it would have
+failed, then retune against it.
+
+### Moving a test: derive, don't re-record
+
+When a retune legitimately moves a bespoke test, the assertion must still compute
+its expectation **from the constants**, so it keeps testing the property. Ripple is
+the model: its hue test did not get a new magic number, it got
+`wantAux := clamp01((tsum/wsum - rippleHueOpen) / (1 - rippleHueOpen))`, plus a
+comment saying why, and its sampling widened with a stated reason. Re-recording an
+observed number, or loosening a tolerance until it passes, converts a guard into a
+transcript of current behaviour.
+
+### Inherit no claim you have not measured
+
+A retune is where false rationale surfaces, because you are the first person to
+re-examine it. One is confirmed false by measurement and still shipping — rain's
+L\* cascade above. Two more are disputed and unresolved: galaxy's "distinct bright
+beads" (`CHANGELOG.md`) and tunnel's "the black core stays ~18% of the radius"
+(`tunnel.go`), both flagged by a retuner who could not reproduce them.
+
+**A closed form goes stale when its inputs move, and it still looks right.** The
+sharpest case found so far reads as impeccable: `ripple_test.go` derives its
+worst-case row-pitch capture as `(1-0.1^2)^2*cos(0.15pi)` = 87.3%, and says
+explicitly that it is a closed form rather than a measurement. The algebra is
+correct and reproduces to the digit — but the `0.15` is `0.1 × rippleCyc`, written
+when `rippleCyc` was `1.5`. PR #49 moved it to `1.8` and the figure was never
+recomputed: the shipped value is **82.8%**. A number that checks out arithmetically
+can still be false, so re-derive it from the constants *as they are now*. When your
+measurement disagrees with a documented closed form, the disagreement is the
+finding — resolve which is stale before overwriting either.
+
+Treat every quantitative "because" in a comment, CHANGELOG or PR body you are about
+to build on as **a claim to check, not context** — they are cheap to render and
+they get cited. If you cannot reproduce one, say so and replace it; an honest
+"arbitrary" beats a mechanism nobody watched. That applies to what you write, too:
+the `defaultFrame` note in `preview/main.go` justified frame 42 by a degenerate
+frame 0 that no shipped variant has — written, one directory over from this file,
+by someone who had just finished documenting the same failure in someone else's
+work, and caught only by that PR's own review pass before it merged.
+
+### A sweep is four values and two rejected neighbours
+
+"Rendered before and after" is not a sweep, and it is what this step decays into.
+§3 says to lift a constant to a `var` while you tune it; retuning one that already
+ships, you can leave it a `const` and swap the value in place per candidate —
+`sed -i 's/rippleCyc = 1.8/rippleCyc = 2.0/' ripple.go`, rebuild, render, revert.
+Either way, **do not `git stash` mid-sweep**: it takes unrelated pending edits with
+it and you will compare against the wrong tree.
+
+Render at least four candidates, and record **the neighbours you rejected and what
+you saw at them** — that is what makes the value defensible and reproducible. Rain
+is the model: `4.5 → 10.1, 3.2 → 28.4, 2.9 → 34.5, 2.6 → 40.6`, shipped at 2.9, and
+it says *why it stops there* — below ~2.7 the tail outruns the lobe and the head
+reads as a lone cell.
+
 ## Verify (the PR gates)
 
 ```sh
@@ -255,6 +373,17 @@ go test ./... && go test ./... -race
   false` unless the field is genuinely still.
 - Motion from anything but `phase`, or randomness from anything but the lattice
   hash. → Purity is broken; redo it.
+
+Retuning (§7) adds four of its own:
+
+- "The whole suite is green, so the change is safe." → For a pure change the shared
+  loops pass by construction. Re-derive what the *bespoke* test measures.
+- "I rendered it before and after, and after is better." → That is two samples, not
+  a sweep. Four values, and name the neighbours you rejected.
+- "The comment says the layers are 16 L\* apart." → Measured where? Take the number
+  off the rendered output or do not cite it.
+- "The test failed, so I updated the expected value." → You just converted a guard
+  into a transcript. Derive the expectation from the constants (§7).
 
 ## Common mistakes
 
