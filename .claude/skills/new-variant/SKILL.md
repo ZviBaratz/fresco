@@ -275,8 +275,9 @@ So: take your numbers from the **rendered** output — the `-mono` glyph grid, o
 emitted SGR bytes decoded back to a colour — not from the field formula. If you
 need internals, write a throwaway probe in-package that reproduces the *whole*
 pipeline (contrast → vignette → `splashShade` → ramp), and delete it before you
-commit. In this worktree an untracked file is auto-staged, so remove it with
-`git rm --cached <file>` and confirm `git status --porcelain` is empty.
+commit. In this worktree an untracked file is auto-staged, so deleting it from
+disk is not enough — `git rm -f <file>` clears both the index and the working
+tree. Confirm `git status --porcelain` is empty.
 
 ### Assume the guard is blind until you re-derive it
 
@@ -310,11 +311,10 @@ transcript of current behaviour.
 ### Inherit no claim you have not measured
 
 A retune is where false rationale surfaces, because you are the first person to
-re-examine it. Two are confirmed false by measurement — rain's L\* cascade above,
-and this skill's own `defaultFrame` note, which justified frame 42 by a degenerate
-frame 0 that does not exist. Two more are disputed and unresolved: galaxy's
-"distinct bright beads" (`CHANGELOG.md`) and tunnel's "the black core stays ~18% of
-the radius" (`tunnel.go`), both flagged by a retuner who could not reproduce them.
+re-examine it. One is confirmed false by measurement and still shipping — rain's
+L\* cascade above. Two more are disputed and unresolved: galaxy's "distinct bright
+beads" (`CHANGELOG.md`) and tunnel's "the black core stays ~18% of the radius"
+(`tunnel.go`), both flagged by a retuner who could not reproduce them.
 
 **A closed form goes stale when its inputs move, and it still looks right.** The
 sharpest case found so far reads as impeccable: `ripple_test.go` derives its
@@ -331,8 +331,10 @@ Treat every quantitative "because" in a comment, CHANGELOG or PR body you are ab
 to build on as **a claim to check, not context** — they are cheap to render and
 they get cited. If you cannot reproduce one, say so and replace it; an honest
 "arbitrary" beats a mechanism nobody watched. That applies to what you write, too:
-the `defaultFrame` claim was written *in this very file* by someone who had just
-finished documenting the same failure in someone else's work.
+the `defaultFrame` note in `preview/main.go` justified frame 42 by a degenerate
+frame 0 that no shipped variant has — written, one directory over from this file,
+by someone who had just finished documenting the same failure in someone else's
+work, and caught only by that PR's own review pass before it merged.
 
 ### A sweep is four values and two rejected neighbours
 
