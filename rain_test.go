@@ -315,6 +315,24 @@ func rainStopFor(lit float64) int {
 	return clampInt(int(lit*float64(splashRainStops-1)), 0, splashRainStops-1)
 }
 
+// rainScreenStopFor is where a *point-function* brightness lands on the ramp once
+// it has been through the engine — which is the only version the eye ever sees.
+//
+// The distinction is not pedantic, and asserting on the wrong side of it shipped a
+// bug. renderField curves every value with smoothstep(0, 1, val) before Pass 2, and
+// smoothstep's derivative goes to zero at *both* ends, so two brightnesses that are
+// comfortably apart in the field can be squeezed together on the ramp. The layer
+// cascade was pinned in raw units and read as evenly spaced there while the two
+// brightest layers rendered 3.9 L* apart — a cascade the test could not see.
+//
+// Edge vignette is deliberately excluded: it scales toward the borders and this is
+// the centre-of-pane case, which is the best the field ever does. A guard that
+// holds here can still be dimmed by the vignette; one that fails here fails
+// everywhere.
+func rainScreenStopFor(bright float64) int {
+	return rainStopFor(smoothstep(0, 1, bright))
+}
+
 // TestRainHeadOutshinesItsTail is the one that took three screenshots to find.
 //
 // A head reads as a head because of the step down to the cell behind it, and
@@ -334,8 +352,8 @@ func TestRainHeadOutshinesItsTail(t *testing.T) {
 	pal := splashTestPalette()
 
 	for li, L := range rainLayers {
-		head := rainRampLum(t, pal, rainStopFor(1.0*L.bright))
-		tail := rainRampLum(t, pal, rainStopFor(rainTailAmp*L.bright))
+		head := rainRampLum(t, pal, rainScreenStopFor(1.0*L.bright))
+		tail := rainRampLum(t, pal, rainScreenStopFor(rainTailAmp*L.bright))
 		require.Greaterf(t, head-tail, 15.0,
 			"layer %d's head is only %.1f L* above its own tail-top (head %.1f, tail %.1f); "+
 				"a head that close to its tail does not read as a head",
@@ -354,7 +372,7 @@ func TestRainLayersSeparateInBrightness(t *testing.T) {
 
 	prev := 999.0
 	for li, L := range rainLayers {
-		head := rainRampLum(t, pal, rainStopFor(1.0*L.bright))
+		head := rainRampLum(t, pal, rainScreenStopFor(1.0*L.bright))
 		require.Lessf(t, head, prev-10.0,
 			"layer %d's head (L* %.1f) must sit clearly below the layer in front of it "+
 				"(L* %.1f); layers that close read as one plane", li, head, prev)

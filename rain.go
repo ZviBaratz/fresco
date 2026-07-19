@@ -160,14 +160,26 @@ const (
 // The bright column is the constrained one, and three separate guards bound it.
 // It must be strictly descending, and each step must clear ~10 L* on the rendered
 // ramp, or the layers stop being distinguishable (TestRainLayersSeparateInBrightness)
-// — these land at L* 81.9 / 65.7 / 47.4 / 35.2, so 16.2 / 18.3 / 12.2. Each layer
+// — these land at L* 81.9 / 65.7 / 47.4 / 29.1, so 16.2 / 18.3 / 18.3. Each layer
 // must also keep its own head above its own tail by 15 L*
-// (TestRainHeadOutshinesItsTail) — 28.3 / 30.5 / 18.2 / 18.2. And the near layer's
+// (TestRainHeadOutshinesItsTail) — 28.2 / 36.6 / 30.4 / 18.1. And the near layer's
 // 1.00 is pinned rather than chosen: the ramp's top stop is reachable only at
 // lit == 1, so any less and no head anywhere renders white
 // (TestRainKeepsItsHeadsAwayFromTheFocalPoint). The quantization is coarse — 16
 // stops — so these are stop assignments, not a smooth dial; nudging a bright by
 // 0.02 often moves nothing at all, and then moves a whole 6-point stop at once.
+//
+// Every figure above is measured *after* renderField's smoothstep contrast curve,
+// which is the only place they mean anything — see rainScreenStopFor. Read in raw
+// field units these same four layers look evenly spaced while rendering 3.9 L*
+// apart at the top, which is exactly the bug that shipped: mid sat at 0.72, and
+// smoothstep flattens hard approaching 1, so mid and near both landed near the
+// ramp's top and the field read as three depths. mid is 0.64 because that is the
+// centre of the stop-10 plateau ([0.6135, 0.6610]): 0.66 and 0.62 render an
+// identical cascade but sit 0.001 and 0.007 from an edge, so any later palette or
+// ramp change tips them to a neighbouring stop; 0.64 has 0.021 of room either way.
+// 0.70 still clears the guard at 10.1 but only just, and 0.56 collapses the gap to
+// deep to 6.3.
 //
 // The last entry must keep the shortest period: TestRainTailFadesFromTheHead
 // reads rainLayers[len-1].period to find the shortest tail the field can produce.
@@ -175,7 +187,7 @@ var rainLayers = [4]struct {
 	speed, bright, period float64
 }{
 	{speed: 1.00, bright: 1.00, period: 58.0}, // near: reaches white
-	{speed: 0.68, bright: 0.72, period: 44.0}, // mid:  the stream hue
+	{speed: 0.68, bright: 0.64, period: 44.0}, // mid:  the stream hue
 	{speed: 0.46, bright: 0.52, period: 34.0}, // deep: below the hue, still legible
 	{speed: 0.30, bright: 0.36, period: 26.0}, // haze: dim only, the far wash
 }

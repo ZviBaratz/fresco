@@ -9,6 +9,27 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Fixed
+
+- **`fresco.Rain`** renders its four parallax depths as four, not three. The layer
+  cascade was pinned in raw field units, upstream of the `smoothstep` contrast curve
+  every value passes through before Pass 2. Smoothstep flattens approaching `1`, so
+  the near and mid layers — `1.00` and `0.72`, comfortably apart in the field — both
+  landed near the ramp's top and rendered **3.9 L\*** apart, against the 10-point
+  separation the design calls for and the `16.2` its own comment claimed. The
+  documented cascade `81.9 / 65.7 / 47.4 / 35.2` was never what reached the screen;
+  that was `81.9 / 78.0 / 47.4 / 29.1`.
+  `TestRainLayersSeparateInBrightness` and `TestRainHeadOutshinesItsTail` now measure
+  through the curve (`rainScreenStopFor`), which makes the guard fail on the shipped
+  value, and the mid layer's `bright` moves `0.72 → 0.64` to satisfy it: the rendered
+  cascade is now `81.9 / 65.7 / 47.4 / 29.1`, separations `16.2 / 18.3 / 18.3`. `0.64`
+  is the centre of the stop-10 plateau rather than an edge of it, so a later palette
+  change cannot quietly tip it to a neighbouring stop. Measured on rendered output:
+  the mid layer's heads move out of the `L* 70–79` band (239 cells → 53) and into
+  `60–69` (50 → 193), opening the gap under the near layer that the parallax reads
+  from. Rendered bytes change by design; determinism, bounds and rain's other
+  invariants are untouched.
+
 ### Changed
 
 - **`fresco.Tunnel`** retuned for a warmer, textured corridor. Its `lumRange` moves
