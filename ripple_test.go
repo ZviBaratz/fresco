@@ -270,17 +270,23 @@ func TestSplashRippleCrestTravelsAtRippleSpeed(t *testing.T) {
 // So: sweep every alignment of the row grid against the ring, and require even
 // the worst one to still land on most of the crest's true peak.
 //
-// At the shipped packet that worst case is 87.3%, and it is a closed form rather
+// At the shipped packet that worst case is 82.8%, and it is a closed form rather
 // than a measurement: the grid steps x by cellAspect/rippleW = 0.2, so the worst
-// alignment straddles the peak at x = ±0.1 and reads (1-0.1^2)^2*cos(0.15pi) of
-// it. Age cancels out of the ratio — fade and flash scale both samples alike —
+// alignment straddles the peak at x = ±0.1 and reads
+// (1-0.1^2)^2*cos(rippleCyc*pi*0.1) of it — today cos(0.18pi), 82.8%. The carrier
+// term is written against rippleCyc rather than folded to a literal on purpose:
+// as `cos(0.15pi)` it silently outlived the constant it came from, claiming 87.3%
+// for three PRs after rippleCyc moved 1.5 → 1.8. Age cancels out of the ratio —
+// fade and flash scale both samples alike —
 // which is why every age below reports the identical number. The ages are swept
 // anyway so that the guard keeps telling the truth if the packet ever becomes a
 // function of age; today they are one constant measured four times.
 //
-// The 75% floor therefore has real margin under it (87.3 against 75) rather than
+// The 75% floor therefore has real margin under it (82.8 against 75) rather than
 // being fitted to the current numbers, and it still bites where it should:
-// rippleW 6 gives 67% and rippleCyc 2.3 gives 74%.
+// rippleW 6 gives 56% and rippleCyc 2.3 gives 74%. The margin is thinner than the
+// original 87.3 suggested — rippleCyc 1.8 spent 4.5 points of it — which is the
+// figure ripple.go has carried correctly all along.
 func TestSplashRippleCrestSurvivesTheRowPitch(t *testing.T) {
 	px, py := rippleDropPos(0, 0, 0)
 	ts := rippleDropBirth(0, 0, 0)
