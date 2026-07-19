@@ -57,6 +57,30 @@ with the pre-1.0 caveats described in
   are unchanged. Rendered bytes change by design; determinism, bounds, and ripple's
   invariants still hold.
 
+- **`fresco.Rain`** retuned so its two signatures — the bright head and the depth —
+  land, in two coordinated moves. Its head lobe tightens (`rainHeadR 4.5 → 2.9`),
+  which is a fix as much as a retune: `rainTailAmp` buys a ~28-point L\* gap under
+  the head, but a 4.5-unit lobe reached 1.68 rows and sat in that gap itself, so the
+  cell one row behind a head landed at L\* 71.8 against the head's 81.9 — a 10-point
+  step, and a head that rendered as a two-cell blob rather than an edge. At `2.9`
+  that step is 34.5 and the darkness the tail had already paid for finally reaches
+  the head; because the lobe is symmetric, it also cuts the glow *ahead* of a falling
+  head from ~1.7 rows to under a cell. And a fourth parallax depth is added
+  (`rainLayers` `[3] → [4]`, with `rainDensity 0.62 → 0.54` so four compounding
+  layers do not fill the pane), because three left a hole in the middle of the
+  brightness histogram and the eye sorted them into "near" and "far" instead of
+  reading a recession; the four now land at L\* `81.9 / 65.7 / 47.4 / 35.2`, and the
+  room for the extra layer came from the darker field the first move opens. The
+  anti-blink guarantee is untouched — the ramp's top stop is reachable only from the
+  `rainHeadFlat` plateau, and the rendered count of top-stop cells is unchanged
+  across the whole `rainHeadR` sweep. `lumRange` stays at `1`: rain's render branch
+  consumes only the luminance channel and discards the density one, so lowering it
+  would not hand the tail a glyph ramp at all — it would merely lift the whole field
+  and close the head/tail gap, which the rendered sweep confirmed. The stream-train
+  purity, the fall speed, the tail-length window, and the bespoke luminance ramp are
+  unchanged. Rendered bytes change by design; determinism, bounds, and rain's
+  invariants still hold.
+
 ## [1.0.0] - 2026-07-18
 
 The **1.0 release.** The public API is now stable and committed to under Semantic

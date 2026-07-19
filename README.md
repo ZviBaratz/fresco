@@ -54,7 +54,7 @@ Requires Go 1.25+. Depends only on the Charm colour stack (`lipgloss`,
 
 | Variant | What it is |
 |---|---|
-| `fresco.Rain` | Matrix-style digital rain — per-column streams with bright heads and fading tails, layered at three depths. Shades by luminance alone. |
+| `fresco.Rain` | Matrix-style digital rain — per-column streams with bright heads and fading tails, layered at four depths. Shades by luminance alone. |
 | `fresco.Tunnel` | A textured wall flying past a vanishing point — screen position maps to (depth, angle), z-fog carries distance in luminance, hue bands by depth. |
 | `fresco.Ripple` | Drops falling on a dark pool — each flashes where it lands and expands into a hue-shifting ring; rings interfere where they cross. |
 | `fresco.Galaxy` | An inclined spiral turning on the focal point — soft arms, a bright core, an occluding dust lane for depth. |

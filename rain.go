@@ -1,7 +1,7 @@
 package fresco
 
 // Matrix-style digital rain: per-column streams of glyphs falling with bright
-// heads and fading tails, layered at three depths for parallax.
+// heads and fading tails, layered at four depths for parallax.
 //
 // The first splash field that *travels*. Every other one shimmers in place, and
 // a bright leading edge with a decaying trail is the canonical signal the motion
@@ -41,12 +41,14 @@ const (
 	rainSpdMax = 1.45
 
 	// Tail length, hashed per stream, as a fraction of *its layer's* period —
-	// not an absolute length. The layers' periods differ (58/42/30), so one
-	// global range cannot serve them: at an absolute 8–26 the far layer's tails
-	// ran to 26 against a 30-unit period, so every stream's tail reached the head
-	// behind it and the column rendered as one unbroken line. Two of three layers
-	// were solid, which is why the field read as a uniform wash of glyphs rather
-	// than as rain.
+	// not an absolute length. The layers' periods differ (58/44/34/26), so one
+	// global range cannot serve them: at an absolute 8–26 the tails of the
+	// shortest-period layer ran to 26 against a period of 30, so every stream's
+	// tail reached the head behind it and the column rendered as one unbroken
+	// line. Two of the three layers there were then came out solid, which is why
+	// the field read as a uniform wash of glyphs rather than as rain. Expressing
+	// the length as a fraction is also what let a fourth depth be added without
+	// touching this window at all.
 	//
 	// The ceiling must stay below 0.5: a tail longer than half its period is a
 	// column with no gap in it. The gaps are the whole rhythm — uninterrupted
@@ -62,14 +64,51 @@ const (
 	// wider than one row guarantees every head lands on at least one cell at the
 	// top of the ramp. rainHeadR is where the lobe finally reaches zero, giving
 	// the soft leading edge that slides between rows.
+	//
+	// rainHeadR is down from the 4.5 this field first shipped, and the reason is
+	// that 4.5 was quietly cancelling rainTailAmp. That constant buys a ~28-point
+	// L* gap under the head — but only *below the lobe's reach*, and a 4.5-unit
+	// lobe reaches 1.68 rows. The cell one row behind a head landed at L* 71.8
+	// against the head's 81.9: a 10-point step, so the head rendered as a two-cell
+	// blob and the darkness the tail had paid for never showed. At 2.9 the same
+	// cell falls to L* 47.4 and the step is 34.5. Measured across the sweep:
+	// 4.5 → 10.1, 3.2 → 28.4, 2.9 → 34.5, 2.6 → 40.6.
+	//
+	// It stops at 2.9 rather than going lower because the lobe must still just
+	// outrun a mid-length tail one row back — below ~2.7 the tail wins there, the
+	// lobe stops being a lobe, and the head reads as a lone cell disconnected from
+	// its own stream.
+	//
+	// Two things this does *not* do. It does not touch the anti-blink guarantee:
+	// the top of the ramp is reachable only from the plateau (lit == 1 exactly),
+	// which is rainHeadFlat's job, and the rendered count of top-stop cells is
+	// unchanged across the whole sweep — see TestRainHeadAlwaysLandsOnACell. And
+	// because the lobe is symmetric in d, shrinking it also cuts the glow *ahead*
+	// of the head from ~1.7 rows to under a cell, which is its own small win: a
+	// falling thing should not be lit in front of itself.
 	rainHeadFlat = 1.15
-	rainHeadR    = 4.5
+	rainHeadR    = 2.9
 
 	// rainDensity is the fraction of (column, layer, stream) slots that carry a
-	// stream at all; the rest are gaps. Sparse on purpose — three layers of
+	// stream at all; the rest are gaps. Sparse on purpose — four layers of
 	// streams compound, and a screen with a glyph in every cell is a texture,
 	// not weather.
-	rainDensity = 0.62
+	//
+	// Down from 0.62, and it is the fourth depth that spends it: the layers
+	// compound, so holding the per-slot rate fixed while adding a layer would have
+	// put a third again as many streams on the pane. 0.54 across four layers lands
+	// the lit fraction just under where three layers at 0.62 had it (27.0% against
+	// 27.8% at 96×30), so the new depth arrives as depth rather than as clutter.
+	//
+	// It stops at 0.54 rather than going lower because of small panes, and the
+	// floor was found by counting rendered heads rather than reasoned to. At 0.52
+	// a 30×10 pane spent 21 frames in 60 with no white head on screen at all,
+	// against 15 for the three-layer field; at 0.54 that is 3, and every pane from
+	// 36×12 up matches the old field frame for frame. Below ~36×12 the count stops
+	// responding to this constant entirely — a 24×8 pane sits at 29 frames in 60
+	// at 0.52, 0.54 and 0.62 alike — because there the edge vignette, not the
+	// stream density, is what leaves too few rows for a head to land in.
+	rainDensity = 0.54
 
 	// rainTailAmp caps the tail's brightness, and the gap it opens under the head
 	// is the whole reason a head reads as one.
@@ -88,6 +127,13 @@ const (
 	// half now falls below the terminal background and simply disappears, so the
 	// screen is mostly dark with bright streams on it, rather than a uniform haze
 	// of mid-grey glyphs.
+	//
+	// The value has not moved, but what it buys has: the ~28-point step it opens
+	// was for a long time invisible, because the head lobe's own shoulder sat in
+	// the gap and filled it back in. Tightening rainHeadR is what finally handed
+	// the cell behind a head to this constant, so read the two together — this one
+	// sets how dark the tail is, and rainHeadR sets whether that darkness reaches
+	// the head at all.
 	rainTailAmp = 0.55
 )
 
@@ -96,19 +142,42 @@ const (
 // Depth is luminance first. Each layer's bright caps how far up the ramp its
 // streams can climb, and the ramp runs dark → the stream hue → white: the near
 // layer reaches the white head, the mid layer tops out around the stream hue,
-// and the far layer never leaves the dim end. That is atmospheric perspective,
+// and the far ones never leave the dim end. That is atmospheric perspective,
 // and it is the cue the earlier hue-per-layer attempt was standing in for —
 // badly, because hue says *which* layer without saying which is nearer.
 //
 // speed is the second cue, and an independent one: motion parallax is monocular
 // and needs no vanishing point, so nearer simply means faster. period spaces the
 // far layers' streams more tightly, the way distance packs anything together.
-var rainLayers = [3]struct {
+//
+// There are four of them, up from three, and the fourth is what makes the depth
+// read as a continuum rather than as two sheets. Three layers left a hole in the
+// middle of the brightness histogram — a bright population and a dim one with
+// little between — so the eye sorted them into "near" and "far" instead of
+// reading a recession. The room to add one came from tightening rainHeadR, which
+// dropped the field from 27.8% lit to 23.7%; rainDensity spends the rest.
+//
+// The bright column is the constrained one, and three separate guards bound it.
+// It must be strictly descending, and each step must clear ~10 L* on the rendered
+// ramp, or the layers stop being distinguishable (TestRainLayersSeparateInBrightness)
+// — these land at L* 81.9 / 65.7 / 47.4 / 35.2, so 16.2 / 18.3 / 12.2. Each layer
+// must also keep its own head above its own tail by 15 L*
+// (TestRainHeadOutshinesItsTail) — 28.3 / 30.5 / 18.2 / 18.2. And the near layer's
+// 1.00 is pinned rather than chosen: the ramp's top stop is reachable only at
+// lit == 1, so any less and no head anywhere renders white
+// (TestRainKeepsItsHeadsAwayFromTheFocalPoint). The quantization is coarse — 16
+// stops — so these are stop assignments, not a smooth dial; nudging a bright by
+// 0.02 often moves nothing at all, and then moves a whole 6-point stop at once.
+//
+// The last entry must keep the shortest period: TestRainTailFadesFromTheHead
+// reads rainLayers[len-1].period to find the shortest tail the field can produce.
+var rainLayers = [4]struct {
 	speed, bright, period float64
 }{
 	{speed: 1.00, bright: 1.00, period: 58.0}, // near: reaches white
-	{speed: 0.62, bright: 0.72, period: 42.0}, // mid:  the stream hue
-	{speed: 0.40, bright: 0.45, period: 30.0}, // far:  dim only
+	{speed: 0.68, bright: 0.72, period: 44.0}, // mid:  the stream hue
+	{speed: 0.46, bright: 0.52, period: 34.0}, // deep: below the hue, still legible
+	{speed: 0.30, bright: 0.36, period: 26.0}, // haze: dim only, the far wash
 }
 
 // Lattice seeds for the per-stream draws (distinct from every field seed).
