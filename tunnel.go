@@ -47,7 +47,12 @@ const (
 	// dividing first and clamping after is what makes the +Inf harmless.
 	tunUMax = 25.0
 	// tunFogA is the z-fog half-distance: fog = r/(r+A) passes 0.5 at r == A, so
-	// A is the half-lit radius in aspect-corrected cells. It is large because
+	// A is the half-lit radius of the *ungained* hyperbola, in aspect-corrected
+	// cells. tunFogGain below multiplies the whole thing, which moves the actual
+	// half-lit radius inward — to 18.4% of maxD rather than A's 31.25% (derived at
+	// splashTunnelAtFor). Read this line alone and the rendered core looks wrong by
+	// a factor of 1.7; it has already sent two readers to that conclusion.
+	// It is large because
 	// screen area grows as r²: most of the pane is at large r, so a small A puts
 	// nearly every cell in the saturated bright end of the hyperbola and leaves no
 	// gradient across the region that dominates the view. Measured at A=7 the fog
@@ -231,6 +236,21 @@ func splashTunnelFBM(u, v, mipBase float64) float64 {
 // depth constant, so the rings land at the same fraction of the pane; the fog
 // distance, so the black core stays ~18% of the radius; and the banking, so the
 // corridor sways by the same proportion rather than by a fixed number of cells.
+//
+// That 18% is exact rather than eyeballed, and worth being able to re-derive here
+// because reaching it from tunFogA alone gives a different answer. fogA scales with
+// the pane (tunFogA*maxD/tunRefD), so as a fraction of the radius it is a constant
+// 30/96 = 0.3125 at every size. With rho = r/maxD the whole fog term is therefore
+// scale-free — fog = tunFogGain*rho/(rho+0.3125) — and it reaches 0.5 at
+//
+//	rho = 0.5*0.3125/(tunFogGain-0.5) = 0.15625/0.85 = 0.1838
+//
+// so the half-lit radius is 18.4% of maxD, and stays there at any pane size. The
+// gain is what moves it: without it, half-lit would sit at rho = 0.3125. Measured on
+// rendered frames at 96x30, 160x44, 240x60 and 300x80, the radial luminance profile
+// is the same curve at all four and crosses half its peak at 16% of the radius —
+// just inside the 18.4%, which is the contrast curve, the quantization and the edge
+// vignette taking their cut.
 //
 // tunUMax deliberately does not scale — u = K/r with K ∝ maxD and r ∝ maxD makes
 // u scale-invariant already. Nor does the lod: Nyquist is an absolute fact about
