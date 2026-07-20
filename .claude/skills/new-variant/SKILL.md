@@ -232,13 +232,16 @@ never requirements.)*
 
 > **Settle `lumRange` from `-mono`, not from a PNG.** A rasterizer draws one flat
 > colour per cell, so it approximates the glyph ramp at best and cannot resolve it the
-> way a terminal does — and `lumRange` *is* the ramp. The shipped `ansi2png.py` still
-> paints every glyph as a solid block of its fg colour (the ink-coverage fix is
-> unmerged), which makes `-lum 0` render as a gorgeous full-bleed field when the
-> terminal truth is a faint dust of `·` and `:`; that gate ranks the sweep
-> **backwards**. Use the PNG for **hue, negative space and motion**, and
-> the `-mono` glyph grid for **density**. When they disagree, the glyph grid wins —
-> it is the thing a terminal actually prints.
+> way a terminal does — and `lumRange` *is* the ramp. `ansi2png.py` now weights each
+> cell by its glyph's ink coverage, so a sweep at least *ranks* correctly (tunnel
+> `lumRange` 0 / 0.5 / 0.75 / 1 → mean brightness 28 / 32 / 36 / 55); before that fix
+> it ranked the sweep **backwards**. But coverage-weighting is still an average, not
+> the glyph: a solid wall of `:` and a field of `+` covering two-thirds of each row
+> carry the same ink, and rasterize to the same brightness (28.00 vs 27.95, 0.2%
+> apart) despite looking nothing alike. Equal ink is not equal texture, and texture
+> is what you are tuning. Use the PNG for **hue, negative space and motion**, and the
+> `-mono` glyph grid for **density**. When they disagree, the glyph grid wins — it is
+> the thing a terminal actually prints.
 
 ## 7 · Retuning a shipped variant
 
