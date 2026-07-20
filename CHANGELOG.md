@@ -9,6 +9,8 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-20
+
 ### Fixed
 
 - **`fresco.Rain`** renders its four parallax depths as four, not three. The layer
@@ -337,7 +339,8 @@ glance.
   `Options` / `Palette` API, automatic terminal colour-profile detection, and
   the `cmd/fresco-demo` runnable demo.
 
-[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ZviBaratz/fresco/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ZviBaratz/fresco/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ZviBaratz/fresco/compare/v0.3.0...v1.0.0
 [0.3.0]: https://github.com/ZviBaratz/fresco/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ZviBaratz/fresco/compare/v0.1.0...v0.2.0
