@@ -311,10 +311,19 @@ transcript of current behaviour.
 ### Inherit no claim you have not measured
 
 A retune is where false rationale surfaces, because you are the first person to
-re-examine it. One is confirmed false by measurement and still shipping — rain's
-L\* cascade above. Two more are disputed and unresolved: galaxy's "distinct bright
-beads" (`CHANGELOG.md`) and tunnel's "the black core stays ~18% of the radius"
-(`tunnel.go`), both flagged by a retuner who could not reproduce them.
+re-examine it. Two are now confirmed false by measurement: rain's L\* cascade
+above, and galaxy's "distinct bright beads strung along filamentary arms" — the
+knots are real but land at the core and the outskirts, and the arm annulus, where
+the claim puts them, has the *lowest* bead density in the field. One is still
+disputed: tunnel's "the black core stays ~18% of the radius" (`tunnel.go`), flagged
+by a retuner who could not reproduce it.
+
+Note how the galaxy claim was settled, because a taste word looks unfalsifiable
+until you pick the comparison. "Studded" is not measurable; **the same field with
+`galKnotAmp = 0` is.** An A/B against the term switched off turns "does it read?"
+into a count you can put a number on — and it is what showed the term is not inert
+(12× the local maxima) *and* that it does nothing where the sentence said it did.
+When a claim is about something you can turn off, turn it off.
 
 **A closed form goes stale when its inputs move, and it still looks right.** The
 sharpest case found so far reads as impeccable: `ripple_test.go` derives its

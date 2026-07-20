@@ -23,18 +23,28 @@ with the pre-1.0 caveats described in
   luminance split and the hue's unresolved fallback moved. Rendered bytes change by
   design; determinism, bounds, and the tunnel's invariants still hold.
 
-- **`fresco.Galaxy`** retuned for a galaxy caught mid-turn with studded, filamentary
-  arms. Two moves: its rigid pattern rotation `galRotSpd` doubles (`1.0 → 2.0`) so the
-  spiral's turn — the roster's weakest motion — is plainly alive within a second or two
-  of viewing while staying stately rather than spinning (phase is the field's only time
-  term, so the per-frame step is far below any strobe); and the arm texture is pushed
-  from softly grainy to studded (`galTurbAmp 0.62 → 0.72`, `galKnotThr 0.68 → 0.63`,
-  `galKnotAmp 0.70 → 0.85`), so the star-forming knots read as distinct bright beads
-  strung along filamentary arms, lighting up as the density wave sweeps through the
-  static turbulence. The texture stays additive-on-peaks, so it opens no holes; the
+- **`fresco.Galaxy`** caught mid-turn. Its rigid pattern rotation `galRotSpd` doubles
+  (`1.0 → 2.0`) so the spiral's turn — the roster's weakest motion — is plainly alive
+  within a second or two of viewing while staying stately rather than spinning (phase
+  is the field's only time term, so the per-frame step is far below any strobe). The
+  arm turbulence is also raised (`galTurbAmp 0.62 → 0.72`, `galKnotThr 0.68 → 0.63`,
+  `galKnotAmp 0.70 → 0.85`), which adds grain and lifts the brightest turbulence peaks
+  into local highlights. The texture stays additive-on-peaks, so it opens no holes; the
   bright core still outshines the disk, the arm mip/anisotropy and core-finite
   guarantees are unchanged, and hue still moves without touching brightness. Rendered
   bytes change by design; determinism, bounds, and the galaxy's invariants still hold.
+
+  An earlier draft of this entry claimed the knots "read as distinct bright beads
+  strung along filamentary arms". Measured against `galKnotAmp = 0`, that overstates
+  what the change does. The knot term is not inert — it produces 12× the local maxima
+  (73 against 6 across three frames, at ≥8 L\* over their neighbours) — but those
+  maxima land in the bright core and the faint outskirts, not on the arms: per 1000
+  lit cells the arm annulus carries `0.0` and `3.1` beads against `14.9` at the core
+  and `12.3` further out, the lowest density in the field. In the glyph-density channel
+  they do nothing measurable at any radius (mean glyph weight `9.24` against `9.22` in
+  the arms), because the arms already sit at 8.4–9.2 of 11 on the ramp and an additive
+  term there clips instead of studding. Making the arms genuinely studded is tracked
+  separately; the rotation half of this entry is unaffected.
 
 - **`fresco.Ripple`** retuned to make its interference pattern — the field's jewel —
   read, in three moves. Its crest amplitude `rippleAmp` drops (`0.85 → 0.65`) to open
