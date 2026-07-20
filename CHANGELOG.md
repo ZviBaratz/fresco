@@ -63,9 +63,54 @@ with the pre-1.0 caveats described in
   lit cells the arm annulus carries `0.0` and `3.1` beads against `14.9` at the core
   and `12.3` further out, the lowest density in the field. In the glyph-density channel
   they do nothing measurable at any radius (mean glyph weight `9.24` against `9.22` in
-  the arms), because the arms already sit at 8.4–9.2 of 11 on the ramp and an additive
-  term there clips instead of studding. Making the arms genuinely studded is tracked
-  separately; the rotation half of this entry is unaffected.
+  the arms). That draft went on to blame saturation — "the arms already sit at 8.4–9.2
+  of 11 on the ramp, so an additive term there clips instead of studding" — and that
+  mechanism is false too: re-measured, **no cell clips anywhere** and the arms sit at
+  `val ≈ 0.37` of 1.0. Both the mean-glyph figure and the local-maxima distribution
+  above are also single-channel readings taken before the instrument was sound. The
+  actual cause is measured in the entry below. The rotation half of this entry is
+  unaffected.
+
+- **`fresco.Galaxy`**'s arms are actually studded now, and the reason the previous
+  attempt could not have worked is a spatial-frequency one rather than a gain or a
+  headroom one. The knots were gated on `splashGalaxyTurbulence`, an fBm carrying 47%
+  of its energy at a period of 7.7 columns and 74% at 3.8 columns or wider, so the term
+  brightened a *region* four to eight cells across — and a brightened region reads as a
+  brighter arm, not as a knot. Measured against the term switched off, only **38%** of
+  such a cell's brightening survived subtracting its own eight neighbours: the blob's
+  own skirt lifted the background it had to stand above. No amount of `galKnotAmp`
+  could have fixed that, because the term was never capable of a cell-scale feature.
+
+  So the knots now ride their own high-frequency lattice (`galKnotFreq 0.9`,
+  `galKnotPeak 0.5`, `galKnotAmp 0.85 → 2.0`), sampled in **screen cells** rather than
+  in-plane ones — the in-plane axes are anisotropic by `cellAspect/cos(galInc)` = 2.17,
+  so a frequency compact enough to read horizontally packs past Nyquist vertically. The
+  turbulence now only *gates* them, softly (`galKnotGas 0.35`), because multiplying two
+  sparse gates together starves the count faster than amplitude pays it back. Its gate
+  also normalises against `galTurbCeil 0.93` — the fBm's measured maximum over 4.7M
+  samples — instead of the 1.0 it never reaches; the old divisor capped the gate at
+  0.60 of its range and averaged 0.14.
+
+  `lumRange` drops `0.75 → 0.60` alongside, because `dens = lit^(1-lumRange)` was
+  spending the glyph ramp where it could not be seen: at 0.75 no cell anywhere rendered
+  below glyph 4 of 11, every measurable cell in every radial band was lit, and a knot
+  cleared a full glyph step on **0.3** cells per 1000. At 0.60 that is **70.0** per
+  1000, and the faint disk grades `·  :  ;  +` into dark space rather than ending
+  abruptly. It stops at 0.60 rather than lower because 0.45 collapses the outskirts
+  into the scatter of `.` and `·` the luminance channel exists to prevent. Settled by
+  rendering `{0.35, 0.45, 0.60, 0.75}` in colour and mono and looking; `galKnotFreq`
+  the same way over `{0.5, 0.7, 0.9, 1.3}` (0.5 merged the beads into clumps, 1.3
+  degenerated into single-cell grain).
+
+  Measured at 240×60 over three frames, beads per 1000 lit cells — cells standing a
+  full glyph step above their eight neighbours — go from `5.6` to **`118.5`** in the
+  arm annulus, and the arms carry the field's *highest* density (core `17.6`,
+  outskirts `67.2`) rather than its lowest. They land on the arms rather than between
+  them: `221.0` per 1000 on the arm ridges against `22.9` in the inter-arm gas, a
+  **9.7×** ratio. `TestSplashGalaxyArmsCarryKnots` is the new guard for this and fails
+  on the pre-change field; every previous galaxy assertion is a band mean and could
+  not have. Rendered bytes change by design; determinism, bounds, purity, the arm
+  mip/anisotropy and core-finite guarantees all still hold.
 
 - **`fresco.Ripple`** retuned to make its interference pattern — the field's jewel —
   read, in three moves. Its crest amplitude `rippleAmp` drops (`0.85 → 0.65`) to open

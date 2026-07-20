@@ -107,38 +107,13 @@ const (
 	// pattern just galRotSpd·driftPerFrame/galArms radians, far below any temporal
 	// strobe. Settled by rendering the turning filmstrip and looking.
 	galRotSpd = 2.0
-	// The turbulence: a static fBm the arms are mottled by and, at its peaks, studded
-	// with bright knots. It is the detail — smooth raised-cosine arms read flat, while
-	// a real spiral's arms are grainy, filamentary and knotted with star-forming
-	// regions. galTurbFreq is the coarsest octave's spatial frequency (in in-plane
-	// units), galTurbOct the octave count, galTurbGain the per-octave amplitude
-	// falloff. galTurbAmp is how much the peaks brighten the arm — only the peaks: the
-	// lows leave the arm alone rather than dimming it, or a dip under Pass 2's blank
-	// floor would read as a hole. galKnotThr/galKnotAmp are where the turbulence tips
-	// over into a knot, and how bright.
-	//
-	// The re-art round pushed all three up together — galTurbAmp 0.62→0.72, galKnotThr
-	// 0.68→0.63, galKnotAmp 0.70→0.85 — adding grain and lifting the brightest
-	// turbulence peaks into local highlights. It stays additive-on-peaks (the lows
-	// never dim the arm), so the extra contrast opens no holes — the bright core still
-	// outshines the disk and the azimuthal arm/lane swing still clears its floor, both
-	// pinned in galaxy_test.go.
-	//
-	// It does NOT make the arms studded, which that round's notes claimed. Measured
-	// against galKnotAmp = 0: the knots do produce 12x the local maxima (73 against 6
-	// over three frames, at >=8 L* above their neighbours), but per 1000 lit cells the
-	// arm annulus carries 0.0 and 3.1 of them against 14.9 at the core and 12.3 in the
-	// outskirts — the lowest density in the field — and in the glyph-density channel
-	// they change nothing measurable at any radius (mean glyph weight 9.24 against 9.22
-	// in the arms).
-	//
-	// The reason is saturation, and it is the thing to fix rather than to tune around:
-	// the arms already sit at 8.4-9.2 of 11 on the density ramp, so `knot` — which is
-	// additive on an `arm` that is already near the top — clips there instead of
-	// studding. A knot lands only where the field has headroom, which is exactly the
-	// core and the faint outskirts, where a star-forming region has no business being.
-	// Studding the arms wants headroom in the arm value or a radial gate, not a bigger
-	// galKnotAmp.
+	// The turbulence: a static fBm the arms are mottled by, and the gate deciding
+	// where the knots below may form. It is the grain — smooth raised-cosine arms read
+	// flat, while a real spiral's arms are mottled and filamentary. galTurbFreq is the
+	// coarsest octave's spatial frequency (in in-plane units), galTurbOct the octave
+	// count, galTurbGain the per-octave amplitude falloff. galTurbAmp is how much the
+	// peaks brighten the arm — only the peaks: the lows leave the arm alone rather than
+	// dimming it, or a dip under Pass 2's blank floor would read as a hole.
 	//
 	// It is deliberately fixed in screen space rather than turned with the disk: the
 	// arms sweep *through* a static field, so its fine detail never moves and so can
@@ -148,8 +123,49 @@ const (
 	galTurbOct  = 5
 	galTurbGain = 0.55
 	galTurbAmp  = 0.72
+	// galTurbCeil is splashGalaxyTurbulence's measured upper bound, and it exists
+	// because the gate below has to normalize against a value the noise can actually
+	// reach. The theoretical maximum is 1.0 — every octave peaking on the same cell —
+	// but five decorrelated octaves never do: swept at 0.37-unit steps over
+	// [-400,400]^2 (4.7M samples) the range is [0.064, 0.933]. Re-run that sweep if any
+	// of galTurbFreq/Oct/Gain moves; a normalizer keyed to a peak the field never
+	// visits silently throws away the top of the gate's range, which is exactly what
+	// the previous knot term did (it divided by 1-galKnotThr, so its gate topped out at
+	// 0.60 of 1 and averaged 0.14).
+	galTurbCeil = 0.93
+	// The knots: compact star-forming regions strung along the arms.
+	//
+	// They ride their OWN high-frequency lattice rather than the turbulence above, and
+	// that separation is the fix rather than a refactor. The turbulence is an fBm whose
+	// energy lives in its coarsest octaves — 47% at a period of 7.7 columns, 74% at 3.8
+	// columns or wider — so a gate on it brightens a *region* four to eight cells
+	// across, and a brightened region reads as a brighter arm rather than as a knot.
+	// Measured against the term switched off, only 38% of such a cell's brightening
+	// survives subtracting its own eight neighbours: the blob's skirt lifts the very
+	// background it would have to stand above. That is why the re-art round's brighter,
+	// lower-threshold turbulence knots did not stud the arms and why turning their gain
+	// up could not have — the term was never capable of a cell-scale feature.
+	//
+	// galKnotFreq is the lattice's frequency in SCREEN cells, not in-plane ones. The
+	// in-plane axes are anisotropic by cellAspect/cos(galInc) = 2.17, so a frequency
+	// compact enough to read horizontally packs past the grid's Nyquist limit
+	// vertically; sampling on (dx, dy/cellAspect) makes a knot the same size in both
+	// axes, which is what "compact" has to mean on this grid. Like the turbulence it
+	// carries no phase term, so it cannot alias into crawling however fine it gets —
+	// the arms sweep through a field that never moves.
+	//
+	// galKnotPeak is where that lattice tips over into a knot, galKnotAmp how bright,
+	// and galKnotThr/galKnotGas are the soft gas gate: knots cluster where the slow
+	// turbulence is dense, but only partly, because multiplying two sparse gates
+	// together starves the count faster than amplitude pays it back.
+	galKnotFreq = 0.9
+	galKnotPeak = 0.5
+	galKnotGas  = 0.35
 	galKnotThr  = 0.63
-	galKnotAmp  = 0.85
+	galKnotAmp  = 2.0
+	// galKnotSeed keys the knot lattice, distinct from every galTurbSeed so the knots
+	// are decorrelated from the gas that gates them.
+	galKnotSeed = 0x5BF03635
 	// Colour beyond the radial sweep: the arms lean cooler (galArmHue: young blue
 	// stars) and the turbulence mottles the hue into warm/cool patches (galTurbHue), so
 	// the disk works the whole palette instead of a clean gradient. Both are gentle —
@@ -319,7 +335,14 @@ func splashGalaxyAtFor(maxD float64) splashPointFn {
 		turb := splashGalaxyTurbulence(dx, wy)
 		bright := clamp01((turb - 0.5) * 2) // 0 below the mean, up to 1 at the peaks
 		arm *= 1 + galTurbAmp*bright
-		knot := galKnotAmp * arm * clamp01((turb-galKnotThr)/(1-galKnotThr))
+		// The knots ride their own high-frequency lattice rather than the turbulence
+		// (see galKnotFreq: the turbulence cannot make a cell-scale feature). The
+		// turbulence only *gates* them — knots cluster where the gas is dense — and it
+		// gates softly, because multiplying two sparse gates together starves the count
+		// faster than amplitude can pay it back.
+		gas := 1 - galKnotGas + galKnotGas*clamp01((turb-galKnotThr)/(galTurbCeil-galKnotThr))
+		spark := galValNoise(dx*galKnotFreq, dy/cellAspect*galKnotFreq, galKnotSeed)
+		knot := galKnotAmp * arm * gas * clamp01((spark-galKnotPeak)/(1-galKnotPeak))
 
 		// Dark dust lanes offset from the ridge, also faded by the LOD so they never
 		// outlive the arm they belong to.

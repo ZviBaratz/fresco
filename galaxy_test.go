@@ -2,6 +2,7 @@ package fresco
 
 import (
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/muesli/termenv"
@@ -231,4 +232,122 @@ func TestSplashGalaxyRendersABrightCoreAndDimmingArms(t *testing.T) {
 		"arms and dust lanes must render as an azimuthal brightness swing, not a flat ring: "+
 			"mean stop ran %.2f..%.2f around the annulus", minMean, maxMean)
 	require.Greater(t, midLit, 0.0)
+}
+
+// galaxyGlyphGrid reads a rendered frame back as each cell's glyph ramp index —
+// the density channel. shadeStopGrid cannot see it: that one decodes colour
+// luminance, and lumRange is precisely the knob that moves brightness between the
+// two, so a claim about density asserted on luminance stops is measuring the other
+// channel. Rendered at NoColor so the bytes are exactly the glyphs, with no SGR to
+// step over; a cell's glyph does not depend on the colour profile.
+func galaxyGlyphGrid(t *testing.T, w, h, frame int, pal Palette) [][]int {
+	t.Helper()
+	withColorProfile(t, termenv.Ascii)
+	out := renderSplashField(w, h, frame, pal, centeredFocalRow(h), Galaxy)
+	idx := map[rune]int{}
+	for i, r := range splashRampR {
+		idx[r] = i
+	}
+	grid := make([][]int, 0, h)
+	for _, line := range strings.Split(out, "\n") {
+		row := make([]int, 0, w)
+		for _, r := range line {
+			g, ok := idx[r]
+			require.Truef(t, ok, "rendered glyph %q is not on splashRamp", r)
+			row = append(row, g)
+		}
+		require.Lenf(t, row, w, "row must be exactly %d cells", w)
+		grid = append(grid, row)
+	}
+	return grid
+}
+
+// galaxyBeadDensity counts cells standing a full glyph step above the mean of their
+// eight neighbours, per 1000 lit cells in a rho band. A bead reads as a bead by
+// standing above the cells around it, so the comparison is local: a band mean cannot
+// see a sparse minority of bright cells by construction, which is how the previous
+// round's "mean glyph weight 9.24 against 9.22" concluded that a knot term working
+// on 1.7% of cells did nothing.
+func galaxyBeadDensity(grid [][]int, w, h int, rho func(col, row int) float64, lo, hi float64) float64 {
+	beads, lit := 0, 0
+	for row := 1; row < h-1; row++ {
+		for col := 1; col < w-1; col++ {
+			if !galaxyMeasurable(col, row, w, h) {
+				continue
+			}
+			if r := rho(col, row); r < lo || r >= hi {
+				continue
+			}
+			if grid[row][col] <= 0 {
+				continue
+			}
+			lit++
+			sum := 0
+			for dr := -1; dr <= 1; dr++ {
+				for dc := -1; dc <= 1; dc++ {
+					if dr != 0 || dc != 0 {
+						sum += grid[row+dr][col+dc]
+					}
+				}
+			}
+			if float64(grid[row][col])-float64(sum)/8 >= 1 {
+				beads++
+			}
+		}
+	}
+	if lit == 0 {
+		return 0
+	}
+	return 1000 * float64(beads) / float64(lit)
+}
+
+// TestSplashGalaxyArmsCarryKnots is the guard #56 needed and the previous re-art
+// round did not have — the reason a brighter, lower-threshold knot term could ship
+// while doing nothing visible, with the whole suite green.
+//
+// Every other galaxy assertion is a band *mean* (see
+// TestSplashGalaxyRendersABrightCoreAndDimmingArms), and a mean cannot see a sparse
+// minority of bright cells by construction: the round that claimed the arms were
+// studded measured "mean glyph weight 9.24 against 9.22" and concluded the knots did
+// nothing, when the real finding was that the instrument could not have detected
+// them either way. This one counts cells that stand above their own neighbours,
+// which is what a knot reads by.
+//
+// The floor is placed between two measured states rather than recorded from the
+// current one. A disk with the knot term switched off produces ~2.7 beads per 1000
+// lit cells (galKnotAmp = 0, 120x40); the pre-#56 turbulence-gated knots produced
+// 5.6 here; the shipped high-frequency knots produce ~118. 40 is an order of
+// magnitude above both failing states and ~3x below the passing one, so it fails if
+// the knots regress to a low-frequency swell and does not merely transcribe today's
+// number.
+func TestSplashGalaxyArmsCarryKnots(t *testing.T) {
+	const w, h = 240, 60
+	cx, cyFocal := float64(w-1)/2, float64((h-1)/2)
+	rr := galExtent * math.Hypot(cx, cyFocal*cellAspect)
+	cosInc := math.Cos(galInc)
+	rho := func(col, row int) float64 {
+		dx, dy := float64(col)-cx, (float64(row)-cyFocal)*cellAspect
+		return math.Hypot(dx, dy/cosInc) / rr
+	}
+	var arms, outskirts, core float64
+	frames := []int{0, 30, 60}
+	for _, f := range frames {
+		g := galaxyGlyphGrid(t, w, h, f, splashTestPalette())
+		arms += galaxyBeadDensity(g, w, h, rho, 0.35, 0.60)
+		outskirts += galaxyBeadDensity(g, w, h, rho, 0.60, 1.10)
+		core += galaxyBeadDensity(g, w, h, rho, 0, 0.15)
+	}
+	n := float64(len(frames))
+	arms, outskirts, core = arms/n, outskirts/n, core/n
+	t.Logf("beads per 1000 lit: core %.1f  arms %.1f  outskirts %.1f", core, arms, outskirts)
+
+	require.Greaterf(t, arms, 40.0,
+		"the arms must be studded with knots that stand a glyph step above their "+
+			"neighbours, not smoothly mottled: %.1f beads per 1000 lit cells", arms)
+	// The defect #56 records is a distribution one — the knots landed everywhere but
+	// the arms. The arm annulus is where a star-forming region belongs, so it must
+	// carry them at least as densely as the faint outskirts do.
+	require.Greaterf(t, arms, outskirts,
+		"knots must concentrate on the arms rather than the outskirts: arms %.1f, "+
+			"outskirts %.1f per 1000", arms, outskirts)
 }

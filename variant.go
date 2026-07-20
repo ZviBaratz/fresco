@@ -188,10 +188,25 @@ func (v Variant) ops() splashOps {
 			// has none. The galaxy's own bright knots are its stars.
 			stars: false,
 			// Brightness is the whole subject — bulge to arms to dust lanes — and the
-			// arms want the density ramp too: at 0.75 the bright arms step o → O → 0 → @
-			// across their width while the faint disk rides the colour's luminance, the
-			// textured spiral a photo has and the value the rendered sweep landed on.
-			lumRange: 0.75,
+			// arms want the density ramp too, so the spiral keeps a photo's texture
+			// instead of riding colour alone.
+			//
+			// Lowered from 0.75 when the arms were studded (#56), because 0.75 was
+			// spending the glyph ramp where it could not be seen. dens = lit^(1-lumRange)
+			// is a steep upward compressor: at 0.75 that is lit^0.25, which maps the whole
+			// disk into the ramp's top third — measured, no cell anywhere rendered below
+			// glyph 4 of 11 and every measurable cell in every radial band was lit, so the
+			// field had no negative space and the density channel could express almost no
+			// local structure (a knot cleared a full glyph step on 0.3 cells per 1000).
+			// At 0.60 the same knots clear one on 70.0 per 1000, and the faint disk grades
+			// · → : → ; → + into dark space instead of ending abruptly at ';'.
+			//
+			// It stops at 0.60 rather than going lower because the floor is the other
+			// failure: rendered at 0.45 the outskirts collapse into the scatter of '.' and
+			// '·' this palette's luminance channel exists to prevent (see shade.go), which
+			// is the confetti ripple's ops comment names. Settled by rendering the sweep
+			// {0.35, 0.45, 0.60, 0.75} in colour and mono and looking.
+			lumRange: 0.60,
 		}
 	case Aurora:
 		return splashOps{
