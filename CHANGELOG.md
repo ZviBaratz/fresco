@@ -65,9 +65,12 @@ with the pre-1.0 caveats described in
   they do nothing measurable at any radius (mean glyph weight `9.24` against `9.22` in
   the arms). That draft went on to blame saturation — "the arms already sit at 8.4–9.2
   of 11 on the ramp, so an additive term there clips instead of studding" — and that
-  mechanism is false too: re-measured, **no cell clips anywhere** and the arms sit at
-  `val ≈ 0.37` of 1.0. Both the mean-glyph figure and the local-maxima distribution
-  above are also single-channel readings taken before the instrument was sound. The
+  mechanism is false too: re-measured at 240×60 over three frames, the arm annulus
+  clips (`val == 1.0`) on **11 of 14,712 cells, 0.07%**, and sits at a mean `val` of
+  **0.40** of 1.0, so there was headroom where the claim said there was none. Clipping
+  in the field is real but lives at the bulge, not the arms (508 cells, 1.2% of the
+  pane). Both the mean-glyph figure and the local-maxima distribution above are also
+  single-channel readings taken before the instrument was sound. The
   actual cause is measured in the entry below. The rotation half of this entry is
   unaffected.
 
@@ -88,16 +91,20 @@ with the pre-1.0 caveats described in
   turbulence now only *gates* them, softly (`galKnotGas 0.35`), because multiplying two
   sparse gates together starves the count faster than amplitude pays it back. Its gate
   also normalises against `galTurbCeil 0.93` — the fBm's measured maximum over 4.7M
-  samples — instead of the 1.0 it never reaches; the old divisor capped the gate at
-  0.60 of its range and averaged 0.14.
+  samples — instead of the 1.0 it never reaches; the old divisor `1-galKnotThr` assumed
+  a peak of 1.0, so over that same sweep the gate topped out at **0.82** rather than 1
+  and averaged **0.157** over the 15.9% of samples where it fired at all (0.025 across
+  the whole sweep).
 
   `lumRange` drops `0.75 → 0.60` alongside, because `dens = lit^(1-lumRange)` was
-  spending the glyph ramp where it could not be seen: at 0.75 no cell anywhere rendered
-  below glyph 4 of 11, every measurable cell in every radial band was lit, and a knot
-  cleared a full glyph step on **0.3** cells per 1000. At 0.60 that is **70.0** per
-  1000, and the faint disk grades `·  :  ;  +` into dark space rather than ending
-  abruptly. It stops at 0.60 rather than lower because 0.45 collapses the outskirts
-  into the scatter of `.` and `·` the luminance channel exists to prevent. Settled by
+  spending the glyph ramp where it could not be seen: at 0.75 no measurable cell
+  anywhere rendered below glyph 4 of 11, so the disk used only the ramp's top two
+  thirds. At 0.60 the floor drops to glyph 2 and the faint disk grades `·  :  ;  +`
+  into dark space rather than ending abruptly. Holding the knots fixed, that is worth
+  **45.8 → 76.9** beads per 1000 lit cells across the measurable pane, and **73.5 →
+  118.5** inside the arm annulus. It stops at 0.60 rather than lower because 0.45
+  collapses the outskirts into the scatter of `.` and `·` the luminance channel exists
+  to prevent. Settled by
   rendering `{0.35, 0.45, 0.60, 0.75}` in colour and mono and looking; `galKnotFreq`
   the same way over `{0.5, 0.7, 0.9, 1.3}` (0.5 merged the beads into clumps, 1.3
   degenerated into single-cell grain).
@@ -106,8 +113,8 @@ with the pre-1.0 caveats described in
   full glyph step above their eight neighbours — go from `5.6` to **`118.5`** in the
   arm annulus, and the arms carry the field's *highest* density (core `17.6`,
   outskirts `67.2`) rather than its lowest. They land on the arms rather than between
-  them: `221.0` per 1000 on the arm ridges against `22.9` in the inter-arm gas, a
-  **9.7×** ratio. `TestSplashGalaxyArmsCarryKnots` is the new guard for this and fails
+  them: taking the ridges as `arm ≥ 0.75` and the inter-arm gas as `arm ≤ 0.30` within
+  that annulus, `213.8` per 1000 against `19.7`, a **10.9×** ratio. `TestSplashGalaxyArmsCarryKnots` is the new guard for this and fails
   on the pre-change field; every previous galaxy assertion is a band mean and could
   not have. Rendered bytes change by design; determinism, bounds, purity, the arm
   mip/anisotropy and core-finite guarantees all still hold.

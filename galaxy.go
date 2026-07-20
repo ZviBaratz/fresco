@@ -130,8 +130,9 @@ const (
 	// [-400,400]^2 (4.7M samples) the range is [0.064, 0.933]. Re-run that sweep if any
 	// of galTurbFreq/Oct/Gain moves; a normalizer keyed to a peak the field never
 	// visits silently throws away the top of the gate's range, which is exactly what
-	// the previous knot term did (it divided by 1-galKnotThr, so its gate topped out at
-	// 0.60 of 1 and averaged 0.14).
+	// the previous knot term did: it divided by 1-galKnotThr, presuming a peak of 1.0,
+	// so over that same sweep its gate topped out at 0.82 rather than 1 and averaged
+	// 0.157 over the 15.9% of samples where it fired at all (0.025 across the sweep).
 	galTurbCeil = 0.93
 	// The knots: compact star-forming regions strung along the arms.
 	//

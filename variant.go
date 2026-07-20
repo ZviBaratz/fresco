@@ -194,12 +194,13 @@ func (v Variant) ops() splashOps {
 			// Lowered from 0.75 when the arms were studded (#56), because 0.75 was
 			// spending the glyph ramp where it could not be seen. dens = lit^(1-lumRange)
 			// is a steep upward compressor: at 0.75 that is lit^0.25, which maps the whole
-			// disk into the ramp's top third — measured, no cell anywhere rendered below
-			// glyph 4 of 11 and every measurable cell in every radial band was lit, so the
-			// field had no negative space and the density channel could express almost no
-			// local structure (a knot cleared a full glyph step on 0.3 cells per 1000).
-			// At 0.60 the same knots clear one on 70.0 per 1000, and the faint disk grades
-			// · → : → ; → + into dark space instead of ending abruptly at ';'.
+			// disk into the ramp's top two thirds — measured, no measurable cell anywhere
+			// rendered below glyph 4 of 11, so the density channel had that much less room
+			// to express local structure. At 0.60 the floor drops to glyph 2 and the faint
+			// disk grades · → : → ; → + into dark space instead of ending abruptly at ';'.
+			// Holding the knots fixed, the same beads-per-1000-lit metric the galaxy's own
+			// guard uses goes 45.8 → 76.9 across the measurable pane, 73.5 → 118.5 in the
+			// arm annulus.
 			//
 			// It stops at 0.60 rather than going lower because the floor is the other
 			// failure: rendered at 0.45 the outskirts collapse into the scatter of '.' and
