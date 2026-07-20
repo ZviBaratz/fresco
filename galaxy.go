@@ -69,7 +69,26 @@ const (
 	// gradually into the disk rather than ending in a hard-edged blob that reads as a
 	// separate object — and it covers the inner radii where the arms wind too tightly
 	// to resolve anyway. galBulgeR is the e-folding radius as a fraction of the disk.
-	galBulgeAmp = 1.0
+	//
+	// galBulgeAmp is 0.60, lowered from 1.0 (#60). At 1.0 the pedestal sat at ~1.0
+	// across the inner disk, so the disk it rides on — floor + arm + knot, the knot
+	// term doubled to galKnotAmp 2.0 in #56 — stacked past 1 and clamp01 flattened the
+	// sum: 2.84% of the pane clipped (val == 1.0, a field-level fact upstream of Pass 2)
+	// and the core rendered as a solid block of two glyphs. The clamp was throwing away
+	// real structure, not a saturated smooth field — across the clipped cells the
+	// pre-clamp bulge+disk spans 1.02..2.75 (frame 0) — so dropping the pedestal is what
+	// lets that structure show rather than making room for something never computed.
+	// At 0.60 clipping falls to 1.36% (the residue is sparse knot *peaks*, not a block),
+	// and the nucleus's local glyph contrast — |centre − mean(8-ring)|, the flat-mass
+	// metric — rises 0.13 → 0.43 while the core stays the field's brightest region
+	// (core colour-stop density 11.5 vs the mid-disk's 6.1). A soft-knee on the sum was
+	// measured and rejected: removing the clamp without dropping the pedestal compresses
+	// the 1.02..2.75 spread into a band near 1.0 the glyph ramp cannot resolve, and the
+	// nucleus goes *flatter* (contrast 0.008). Settled by rendering galBulgeAmp
+	// {0.50, 0.55, 0.60, 0.65} in colour and mono and looking: 0.65 begins to fill the
+	// nucleus back toward the old solid look, 0.50 shrinks it to a dim dot that no longer
+	// reads as the bright core.
+	galBulgeAmp = 0.60
 	galBulgeR   = 0.26
 	// galHueGamma maps radius to gradient position: aux = ρ^galHueGamma, so the core
 	// takes the palette's warm anchor and the rim its cool one. That is real
@@ -151,9 +170,11 @@ const (
 	// term, arm beads per 1000 lit go 13.1 / 32.2 / 50.8 / 70.4 / 84.7 at galKnotAmp
 	// 0.85 / 2 / 4 / 8 / 16 — so a big enough gain does clear this file's own guard
 	// (TestSplashGalaxyArmsCarryKnots floors at 40). It buys it by blowing the arms
-	// out: arm clipping rises 0.07% → 1.90% → 6.36% across that sweep, against 118.5
-	// beads at 1.50% from the lattice below. Four times the gain to reach half the
-	// beads at worse clipping is the reason to change the term rather than tune it.
+	// out: arm clipping rises 0.07% → 1.90% → 6.36% across that sweep, against 135.5
+	// beads at 0.92% from the lattice below (measured on the shipped field: galBulgeAmp
+	// 0.60 after #60, on the #61-corrected ruler; it was 118.5 at 1.50% before both).
+	// Four times the gain to reach half the beads at worse clipping is the reason to
+	// change the term rather than tune it.
 	//
 	// galKnotFreq is the lattice's frequency in SCREEN cells, not in-plane ones. The
 	// in-plane axes are anisotropic by cellAspect/cos(galInc) = 2.17, so a frequency

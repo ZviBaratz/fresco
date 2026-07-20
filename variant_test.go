@@ -54,8 +54,9 @@ func TestShippedVariantsOps(t *testing.T) {
 		// Its brightness (bulge to arms to lanes) is the whole subject, split between
 		// the density ramp and the colour's luminance at 0.60 so the arms keep texture.
 		// Lower than the roster's 0.75 because 0.75 compressed the whole disk into the
-		// glyph ramp's top third and left the density channel unable to show a knot;
-		// see ops for the sweep and the confetti floor that stops it going lower.
+		// glyph ramp's top two thirds (no measurable cell below glyph 4 of 11) and left
+		// the density channel unable to show a knot; see ops for the sweep and the
+		// confetti floor that stops it going lower.
 		Galaxy: {stars: false, lumRange: 0.60},
 		// Aurora is a drifting field, so no starfield (stuck pixels). Its curtains are a
 		// smooth glow that is all brightness and no structure, so it rides the colour's

@@ -358,9 +358,10 @@ When a claim is about something you can turn off, turn it off.
 That same A/B is now the guard's floor rather than a one-off measurement:
 `TestSplashGalaxyArmsCarryKnots` sits at 40 beads per 1000 lit cells, an order of
 magnitude above the field with the knots switched off and ~3× below the field with
-them on (`118.5` in the arm annulus at 240×60). A floor placed between two measured
-states fails when the feature regresses; one recorded from the current state only
-transcribes it.
+them on (`135.5` in the arm annulus at 240×60, on the shipped field after #60 lowered
+the bulge and #61 corrected the ruler; it was `118.5` before both). A floor placed
+between two measured states fails when the feature regresses; one recorded from the
+current state only transcribes it.
 
 **A closed form goes stale when its inputs move, and it still looks right.** The
 sharpest case found so far reads as impeccable: `ripple_test.go` derives its

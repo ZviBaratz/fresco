@@ -137,8 +137,9 @@ func TestSplashGalaxyRendersABrightCoreAndDimmingArms(t *testing.T) {
 	stops, _ := shadeStopGrid(t, w, h, frame, splashTestPalette(), Galaxy)
 
 	cx, cyFocal := float64(w-1)/2, float64((h-1)/2)
-	maxD := math.Hypot(cx, cyFocal*cellAspect)
-	rr := galExtent * maxD
+	// The renderer's own length scale, not a re-derivation of it: the test measures
+	// bands against exactly the maxD the field was built from (see splashMaxD; #61).
+	rr := galExtent * splashMaxD(w, h, centeredFocalRow(h))
 	cosInc := math.Cos(galInc)
 	// In-plane radius/angle: undo the inclination's vertical foreshortening so the
 	// bands track the galaxy's actual (elliptical-on-screen) structure, not a screen
@@ -187,6 +188,33 @@ func TestSplashGalaxyRendersABrightCoreAndDimmingArms(t *testing.T) {
 	require.Greater(t, midDens, 0.0, "the mid-disk arms must render, not blank out")
 	require.Greater(t, coreDens, midDens,
 		"brightness must grade from a bright core to a dimmer disk, not render flat")
+
+	// The core must render as STRUCTURE, not a flat bright mass (#60). The three
+	// assertions above are all satisfied by the defect they were meant to guard: a
+	// saturated block is "nearly solid" (coreLit == 1.0) and brighter than the mid-disk
+	// (coreDens > midDens), so none of them can tell the flat core this issue fixed from
+	// a graded one — they measure how *bright* the core is, never whether it *varies*.
+	// This does: the mean local glyph contrast in the nucleus — |centre − mean(8-ring)|
+	// in ramp steps, on the density channel — is ~0 for a block of one or two glyphs and
+	// rises as the bulge grades and the arms wind in. It is the flat-mass metric #60
+	// turns on: measured over three frames it ran 0.13 on the pre-#60 saturated core
+	// (galBulgeAmp 1.0) and 0.43 after (0.60). The 0.25 floor sits between the two
+	// measured states, so it fails the defect with margin rather than transcribing the
+	// current number — the same construction as TestSplashGalaxyArmsCarryKnots's floor.
+	// Asserted on the NoColor glyph grid: shadeStopGrid decodes colour luminance, and
+	// lumRange splits brightness across the two channels, so a density claim read off
+	// the luminance stops would be measuring the wrong half.
+	nucRho := func(col, row int) float64 { rho, _ := planeRA(col, row); return rho }
+	var coreContrast float64
+	structFrames := []int{0, 30, 60}
+	for _, f := range structFrames {
+		g := galaxyGlyphGrid(t, w, h, f, splashTestPalette())
+		coreContrast += galaxyLocalGlyphContrast(g, w, h, nucRho, 0, 0.05)
+	}
+	coreContrast /= float64(len(structFrames))
+	require.Greaterf(t, coreContrast, 0.25,
+		"the core must render as graded structure, not a flat bright mass: mean nucleus "+
+			"local glyph contrast %.3f (flat block ≈0.13, graded core ≈0.43)", coreContrast)
 
 	// Arm structure: across a *thin* in-plane annulus the mean brightness must swing
 	// with angle — brighter arms, darker dust lanes and inter-arm disk — rather than a
@@ -301,6 +329,44 @@ func galaxyBeadDensity(grid [][]int, w, h int, rho func(col, row int) float64, l
 	return 1000 * float64(beads) / float64(lit)
 }
 
+// galaxyLocalGlyphContrast is the mean |centre − mean(eight-neighbour ring)| in
+// glyph-ramp steps over a rho band — the emitted-byte measure of whether a region
+// reads as structure or as a flat mass. A block of one or two glyphs scores near zero
+// however bright it is; a graded, knotted region scores high. It shares
+// galaxyBeadDensity's neighbour ring but averages the signed-magnitude difference
+// rather than counting threshold crossings, because the core defect #60 fixes is the
+// *absence of any variation*, not a shortage of bright peaks.
+func galaxyLocalGlyphContrast(grid [][]int, w, h int, rho func(col, row int) float64, lo, hi float64) float64 {
+	sum, n := 0.0, 0
+	for row := 1; row < h-1; row++ {
+		for col := 1; col < w-1; col++ {
+			if !galaxyMeasurable(col, row, w, h) {
+				continue
+			}
+			if r := rho(col, row); r < lo || r >= hi {
+				continue
+			}
+			if grid[row][col] <= 0 {
+				continue
+			}
+			ringSum := 0
+			for dr := -1; dr <= 1; dr++ {
+				for dc := -1; dc <= 1; dc++ {
+					if dr != 0 || dc != 0 {
+						ringSum += grid[row+dr][col+dc]
+					}
+				}
+			}
+			sum += math.Abs(float64(grid[row][col]) - float64(ringSum)/8)
+			n++
+		}
+	}
+	if n == 0 {
+		return 0
+	}
+	return sum / float64(n)
+}
+
 // TestSplashGalaxyArmsCarryKnots is the guard #56 needed and the previous re-art
 // round did not have — the reason a brighter, lower-threshold knot term could ship
 // while doing nothing visible, with the whole suite green.
@@ -323,7 +389,7 @@ func galaxyBeadDensity(grid [][]int, w, h int, rho func(col, row int) float64, l
 func TestSplashGalaxyArmsCarryKnots(t *testing.T) {
 	const w, h = 240, 60
 	cx, cyFocal := float64(w-1)/2, float64((h-1)/2)
-	rr := galExtent * math.Hypot(cx, cyFocal*cellAspect)
+	rr := galExtent * splashMaxD(w, h, centeredFocalRow(h))
 	cosInc := math.Cos(galInc)
 	rho := func(col, row int) float64 {
 		dx, dy := float64(col)-cx, (float64(row)-cyFocal)*cellAspect

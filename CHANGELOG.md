@@ -32,6 +32,44 @@ with the pre-1.0 caveats described in
 
 ### Changed
 
+- **`fresco.Galaxy`**'s bulge grades into the disk instead of saturating into a flat
+  bright mass (#60). `galBulgeAmp` drops `1.0 → 0.60`. At 1.0 the pedestal sat near 1.0
+  across the inner disk, so the disk it rides on — floor + arm + knot, the knot term
+  doubled to `galKnotAmp 2.0` in #56 — stacked past 1 and `clamp01` flattened the sum:
+  2.84% of the pane clipped (`val == 1.0`, a field-level fact upstream of Pass 2) and
+  the core rendered as a solid block of two glyphs. The clamp was discarding real
+  structure, not a smooth saturated field — across the clipped cells the pre-clamp
+  `bulge + disk` spans `1.02..2.75` — so dropping the pedestal is what lets it show,
+  rather than making room for structure never computed. At 0.60 clipping falls to 1.36%
+  (the residue is sparse knot *peaks*, not a block) and the nucleus's local glyph
+  contrast — `|centre − mean(8-ring)|` in ramp steps, the flat-mass metric — rises
+  `0.13 → 0.43`, while the core stays the field's brightest region (core colour-stop
+  density 11.5 against the mid-disk's 6.1). A soft-knee was measured and rejected:
+  removing the clamp without dropping the pedestal compresses the `1.02..2.75` spread
+  into a band near 1.0 the glyph ramp cannot resolve, and the nucleus goes *flatter*
+  (contrast 0.008). `galBulgeAmp` was settled by rendering `{0.50, 0.55, 0.60, 0.65}`
+  in colour and mono and looking: 0.65 fills the nucleus back toward the old solid look,
+  0.50 shrinks it to a dim dot that no longer reads as the bright core.
+  `TestSplashGalaxyRendersABrightCoreAndDimmingArms` gains a core-structure floor
+  (nucleus glyph contrast `> 0.25`, placed between the measured flat `0.13` and graded
+  `0.43`): its `coreLit > 0.9` and `coreDens > midDens` were both satisfied by the flat
+  block they were meant to guard and so could not have caught this. Rendered bytes
+  change by design; determinism, bounds and purity hold.
+
+- **The galaxy band tests measure against the renderer's own length scale** (#61). The
+  radial ruler was computed two ways — `renderField` took the vertical term as
+  `max(cyFocal, h-1-cyFocal)`, `galaxy_test.go` took `cyFocal` — which differ by one on
+  an odd-height pane (29 vs 30 at 240×60), so the test's `rho` ran ~3% large and slid
+  every band boundary inward. Both now call one `splashMaxD(w, h, focalRow)` helper
+  (rain's and ripple's band tests too), so they cannot diverge again. The knot entry
+  below quotes its arm-annulus bead figures on the pre-#61 ruler and the pre-#60 bulge
+  (`118.5` per 1000, ridge/gas `213.8 / 19.7`, `10.9×`); on the corrected ruler and the
+  shipped field they are `135.5` per 1000, and — taking ridges as `arm ≥ 0.75` and gas
+  as `arm ≤ 0.30` (the raised-cosine spiral phase, before the turbulence lift) across
+  the `0.35 ≤ rho < 0.60` annulus, over frames 0/30/60 at 240×60 — `243.8 / 26.8`, a
+  `9.1×` ratio (the lower bulge lifts the inner-annulus gas cells, so gas beads rise a
+  little more than ridge). No rendered-byte change.
+
 - **`fresco.Tunnel`** retuned for a warmer, textured corridor. Its `lumRange` moves
   from `1` to `0.75`, so the ring texture takes the glyph-density ramp
   (`o → O → 0 → @`) and reads as a tactile, receding surface rather than a flat

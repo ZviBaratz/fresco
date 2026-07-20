@@ -227,6 +227,23 @@ func AppendRender(dst []byte, w, h, frame int, opts Options) []byte {
 	return renderField(dst, w, h, frame, opts.Palette, focalRow, opts.Variant, ops, prof)
 }
 
+// splashMaxD is the focal-point-to-farthest-corner radius: the length scale a
+// single-object variant measures itself against (see splashFieldAt). It is the one
+// definition of that length, shared by renderField and the per-variant band tests so
+// the two cannot compute it differently — galaxy's test once took the vertical term
+// as cyFocal where the renderer takes max(cyFocal, h-1-cyFocal), which on an
+// odd-height pane (cyFocal is (h-1)/2 under integer division, one less than
+// h-1-cyFocal) made the test's rho ~3% large and slid every band boundary inward
+// (#61). cellAspect converts the vertical extent into the same units as the
+// horizontal one, matching the (dx, dy) the field is evaluated in.
+func splashMaxD(w, h, focalRow int) float64 {
+	cx := float64(w-1) / 2
+	cyFocal := float64(focalRow)
+	return math.Hypot(
+		math.Max(cx, float64(w-1)-cx),
+		math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
+}
+
 // renderField builds the colored field background: exactly h rows of
 // exactly w visible cells. The field fills the whole pane and softens only near
 // the four borders (an edge vignette), rather than being a single disc inscribed
@@ -248,9 +265,7 @@ func renderField(dst []byte, w, h, frame int, pal Palette, focalRow int, variant
 	// Distance from the focal point to the farthest corner: the length scale a
 	// variant whose subject is one object measures itself against (see
 	// splashFieldAt), so it spans the whole pane.
-	maxD := math.Hypot(
-		math.Max(cx, float64(w-1)-cx),
-		math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
+	maxD := splashMaxD(w, h, focalRow)
 	if maxD <= 0 {
 		return dst
 	}
