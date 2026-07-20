@@ -466,9 +466,7 @@ func TestRainKeepsItsHeadsAwayFromTheFocalPoint(t *testing.T) {
 	marginX := math.Max(1, float64(w)*edgeVignetteFrac)
 	marginY := math.Max(1, float64(h)*edgeVignetteFrac)
 	cx, cyFocal := float64(w-1)/2, float64((h-1)/2)
-	maxD := math.Hypot(
-		math.Max(cx, float64(w-1)-cx),
-		math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
+	maxD := splashMaxD(w, h, centeredFocalRow(h))
 
 	best, sampled := -1, 0
 	for frame := 0; frame < 12 && best < top; frame++ {

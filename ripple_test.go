@@ -635,7 +635,7 @@ func TestSplashRippleRendersDropsTheSameEverywhere(t *testing.T) {
 	const w, h = 240, 60
 	pal := splashTestPalette()
 	cx, cyFocal := float64(w-1)/2, float64((h-1)/2)
-	maxD := math.Hypot(math.Max(cx, float64(w-1)-cx), math.Max(cyFocal, float64(h-1)-cyFocal)*cellAspect)
+	maxD := splashMaxD(w, h, centeredFocalRow(h))
 
 	nearSum, nearN, farSum, farN := 0.0, 0, 0.0, 0
 	for _, frame := range []int{60, 300, 700, 1100, 1500, 2000} {

@@ -198,9 +198,9 @@ func (v Variant) ops() splashOps {
 			// rendered below glyph 4 of 11, so the density channel had that much less room
 			// to express local structure. At 0.60 the floor drops to glyph 2 and the faint
 			// disk grades · → : → ; → + into dark space instead of ending abruptly at ';'.
-			// Holding the knots fixed, the same beads-per-1000-lit metric the galaxy's own
-			// guard uses goes 45.8 → 76.9 across the measurable pane, 73.5 → 118.5 in the
-			// arm annulus.
+			// Holding the knots and the #60 bulge fixed, the same beads-per-1000-lit metric
+			// the galaxy's own guard uses goes 65.8 → 98.0 across the measurable pane,
+			// 93.1 → 135.5 in the arm annulus (on the #61-corrected ruler).
 			//
 			// It stops at 0.60 rather than going lower because the floor is the other
 			// failure: rendered at 0.45 the outskirts collapse into the scatter of '.' and
