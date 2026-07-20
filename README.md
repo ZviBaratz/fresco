@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="docs/demo.gif" width="640" alt="fresco cycling through its four variants — rain, tunnel, ripple, and galaxy">
+  <img src="docs/demo.gif" width="640" alt="fresco cycling through its five variants — rain, tunnel, ripple, galaxy, and aurora">
 </p>
 
 **Generative, free-running animated fields for the terminal.** fresco paints the

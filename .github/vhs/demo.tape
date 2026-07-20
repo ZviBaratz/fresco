@@ -1,4 +1,4 @@
-# fresco — a one-tour recording of the variants (rain → tunnel → ripple → galaxy).
+# fresco — a one-tour recording of the variants (rain → tunnel → ripple → galaxy → aurora).
 #
 # Regenerate from the repo root:
 #
@@ -31,8 +31,9 @@ Wait
 Type "clear" Enter
 Show
 
-# ~3s per variant gives one full tour across the roster.
+# ~3s per variant gives one full tour across the five-variant roster
+# (rain → tunnel → ripple → galaxy → aurora): 5 × 3s + a small margin.
 Type "FRESCO_DEMO_SECONDS_PER_VARIANT=3 /tmp/fresco-demo 62 17" Enter
-Sleep 12200ms
+Sleep 15200ms
 Ctrl+C
 Sleep 300ms
