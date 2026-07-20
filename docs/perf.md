@@ -23,7 +23,8 @@ go test -run '^$' -bench 'BenchmarkAppendRenderReuse|BenchmarkRenderString|Bench
   60fps caller actually generates, with the output allocation already removed.
 - `BenchmarkRenderString` is the same frame via `Render`, which allocates a fresh
   string each call — that output allocation is inherent to the API.
-- `BenchmarkRenderSplashVariants` / `…Shaded` sweep the four variants and the
+- `BenchmarkRenderSplashVariants` / `…Shaded` sweep every variant (they range over
+  `splashTestVariants()`, which the enum-coverage test keeps complete) and the
   luminance channel at 80×30 (the preview pane) and 240×60 (the full-window
   screensaver). Colour profile is forced to truecolor — a bench binary's stdout is
   not a TTY, so the emitter would otherwise be timed with nothing to emit.
