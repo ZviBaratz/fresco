@@ -232,10 +232,12 @@ func AppendRender(dst []byte, w, h, frame int, opts Options) []byte {
 // definition of that length, shared by renderField and the per-variant band tests so
 // the two cannot compute it differently — galaxy's test once took the vertical term
 // as cyFocal where the renderer takes max(cyFocal, h-1-cyFocal), which on an
-// odd-height pane (cyFocal is (h-1)/2 under integer division, one less than
-// h-1-cyFocal) made the test's rho ~3% large and slid every band boundary inward
-// (#61). cellAspect converts the vertical extent into the same units as the
-// horizontal one, matching the (dx, dy) the field is evaluated in.
+// even-height pane (cyFocal is (h-1)/2 under integer division, one less than
+// h-1-cyFocal; on odd heights the two are equal) made the test's rho ~0.7% large —
+// the raw 29-vs-30 vertical term is ~3%, diluted through the hypotenuse by the
+// dominant half-width — and slid every band boundary inward (#61). cellAspect
+// converts the vertical extent into the same units as the horizontal one, matching
+// the (dx, dy) the field is evaluated in.
 func splashMaxD(w, h, focalRow int) float64 {
 	cx := float64(w-1) / 2
 	cyFocal := float64(focalRow)

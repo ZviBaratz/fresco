@@ -382,7 +382,7 @@ func galaxyLocalGlyphContrast(grid [][]int, w, h int, rho func(col, row int) flo
 // The floor is placed between two measured states rather than recorded from the
 // current one. A disk with the knot term switched off produces ~2.7 beads per 1000
 // lit cells (galKnotAmp = 0, 120x40); the pre-#56 turbulence-gated knots produced
-// 5.6 here; the shipped high-frequency knots produce ~118. 40 is an order of
+// 5.6 here; the shipped high-frequency knots produce ~135. 40 is an order of
 // magnitude above both failing states and ~3x below the passing one, so it fails if
 // the knots regress to a low-frequency swell and does not merely transcribe today's
 // number.

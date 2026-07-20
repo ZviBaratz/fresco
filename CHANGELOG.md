@@ -59,9 +59,11 @@ with the pre-1.0 caveats described in
 - **The galaxy band tests measure against the renderer's own length scale** (#61). The
   radial ruler was computed two ways — `renderField` took the vertical term as
   `max(cyFocal, h-1-cyFocal)`, `galaxy_test.go` took `cyFocal` — which differ by one on
-  an odd-height pane (29 vs 30 at 240×60), so the test's `rho` ran ~3% large and slid
-  every band boundary inward. Both now call one `splashMaxD(w, h, focalRow)` helper
-  (rain's and ripple's band tests too), so they cannot diverge again. The knot entry
+  an even-height pane (29 vs 30 at 240×60; on odd heights the two are equal), so the
+  test's `rho` ran ~0.7% large — the raw vertical term differs ~3%, diluted through the
+  hypotenuse by the dominant half-width — and slid every band boundary inward. Both
+  now call one `splashMaxD(w, h, focalRow)` helper (rain's and ripple's band tests
+  too), so they cannot diverge again. The knot entry
   below quotes its arm-annulus bead figures on the pre-#61 ruler and the pre-#60 bulge
   (`118.5` per 1000, ridge/gas `213.8 / 19.7`, `10.9×`); on the corrected ruler and the
   shipped field they are `135.5` per 1000, and — taking ridges as `arm ≥ 0.75` and gas
