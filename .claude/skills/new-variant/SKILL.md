@@ -124,12 +124,12 @@ no inherited default.
 
 > **Do not pick `lumRange` by analogy or by arithmetic.** Render *your* field at
 > `{0, 0.5, 0.75, 1}` **in colour** and compare with your eyes. The shipped values
-> (ripple and galaxy at `0.75`, rain and tunnel at `1`) were each chosen from a
-> rendered sweep — there is no other honest way to choose. The same goes for every
-> sharpness/speed constant you introduce — and a *field-internal* constant has no
-> `Options` knob to sweep live the way `lumRange` does, so lift it to a package
-> `var` (or an env read) while you tune, then fold the chosen value back to a
-> `const` before shipping.
+> (ripple, tunnel and aurora at `0.75`, galaxy at `0.60`, rain at `1`) were each
+> chosen from a rendered sweep — there is no other honest way to choose. The same
+> goes for every sharpness/speed constant you introduce — and a *field-internal*
+> constant has no `Options` knob to sweep live the way `lumRange` does, so lift it
+> to a package `var` (or an env read) while you tune, then fold the chosen value
+> back to a `const` before shipping.
 
 ## 4 · Register — every touchpoint
 
@@ -314,11 +314,23 @@ transcript of current behaviour.
 ### Inherit no claim you have not measured
 
 A retune is where false rationale surfaces, because you are the first person to
-re-examine it. All four re-art PRs have now been audited. Two claims are confirmed
+re-examine it. All four re-art PRs have now been audited. Two claims were confirmed
 false by measurement: rain's L\* cascade above, and galaxy's "distinct bright beads
-strung along filamentary arms" — the knots are real but land at the core and the
-outskirts, and the arm annulus, where the claim puts them, has the *lowest* bead
+strung along filamentary arms" — the knots were real but landed at the core and the
+outskirts, and the arm annulus, where the claim put them, carried the *lowest* bead
 density in the field. One was stale: ripple's closed form, below.
+
+Galaxy's has since been fixed rather than only recorded (#56): the knots ride their
+own high-frequency lattice, the arm annulus now carries the field's *highest* bead
+density, and `TestSplashGalaxyArmsCarryKnots` guards it. The part worth carrying
+forward is that the **diagnosis was false too**. The recorded cause was saturation —
+"the arms already sit near the top of the ramp, so an additive term clips instead of
+studding" — and re-measurement put arm clipping at 0.07% of cells, with the arms at a
+mean `val` of 0.40 of 1.0. There was headroom all along. The real cause was spatial
+frequency: the fBm gating the knots carries 74% of its energy at periods of 3.8
+columns or wider, so it could only ever brighten a *region*, and a brightened region
+reads as a brighter arm. Two confident mechanisms in a row, both wrong, before one
+that measured — which is the argument for this whole section.
 
 **And one was right.** Tunnel's "the black core stays ~18% of the radius" was
 flagged as unreproducible and holds exactly: the fog's half-lit radius is
@@ -339,9 +351,16 @@ diligence.
 Note how the galaxy claim was settled, because a taste word looks unfalsifiable
 until you pick the comparison. "Studded" is not measurable; **the same field with
 `galKnotAmp = 0` is.** An A/B against the term switched off turns "does it read?"
-into a count you can put a number on — and it is what showed the term is not inert
-(12× the local maxima) *and* that it does nothing where the sentence said it did.
+into a count you can put a number on — and it is what showed the term was not inert
+(12× the local maxima) *and* that it did nothing where the sentence said it did.
 When a claim is about something you can turn off, turn it off.
+
+That same A/B is now the guard's floor rather than a one-off measurement:
+`TestSplashGalaxyArmsCarryKnots` sits at 40 beads per 1000 lit cells, an order of
+magnitude above the field with the knots switched off and ~3× below the field with
+them on (`118.5` in the arm annulus at 240×60). A floor placed between two measured
+states fails when the feature regresses; one recorded from the current state only
+transcribes it.
 
 **A closed form goes stale when its inputs move, and it still looks right.** The
 sharpest case found so far reads as impeccable: `ripple_test.go` derives its
@@ -389,7 +408,7 @@ go test ./... && go test ./... -race
 
 ## Red flags — you are about to ship a dead field
 
-- "I'll use `lumRange` like galaxy's `0.75`." → Render *your* sweep in colour and
+- "I'll use `lumRange` like galaxy's `0.60`." → Render *your* sweep in colour and
   compare. Analogy is not tuning.
 - "The ASCII structure looks right and the tests pass." → You have not seen the
   colour. Run the TrueColor preview.
