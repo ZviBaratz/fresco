@@ -32,6 +32,12 @@ with the pre-1.0 caveats described in
 
 ### Changed
 
+- **The README demo GIF** re-recorded to tour all five variants — it previously
+  showed only the pre-campaign four (rain, tunnel, ripple, galaxy) and now includes
+  aurora, with every field at the re-art campaign's current look (including galaxy's
+  #60 bulge). `.github/vhs/demo.tape` extends its tour by one variant accordingly.
+  Docs/asset only; no code change.
+
 - **`fresco.Galaxy`**'s bulge grades into the disk instead of saturating into a flat
   bright mass (#60). `galBulgeAmp` drops `1.0 → 0.60`. At 1.0 the pedestal sat near 1.0
   across the inner disk, so the disk it rides on — floor + arm + knot, the knot term
