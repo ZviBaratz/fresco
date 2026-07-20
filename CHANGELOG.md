@@ -114,9 +114,10 @@ with the pre-1.0 caveats described in
   arm annulus, and the arms carry the field's *highest* density (core `17.6`,
   outskirts `67.2`) rather than its lowest. They land on the arms rather than between
   them: taking the ridges as `arm ≥ 0.75` and the inter-arm gas as `arm ≤ 0.30` within
-  that annulus, `213.8` per 1000 against `19.7`, a **10.9×** ratio. `TestSplashGalaxyArmsCarryKnots` is the new guard for this and fails
-  on the pre-change field; every previous galaxy assertion is a band mean and could
-  not have. Rendered bytes change by design; determinism, bounds, purity, the arm
+  that annulus, `213.8` per 1000 against `19.7`, a **10.9×** ratio.
+  `TestSplashGalaxyArmsCarryKnots` is the new guard for this and fails on the
+  pre-change field; every previous galaxy assertion is a band mean and could not have.
+  Rendered bytes change by design; determinism, bounds, purity, the arm
   mip/anisotropy and core-finite guarantees all still hold.
 
 - **`fresco.Ripple`** retuned to make its interference pattern — the field's jewel —
