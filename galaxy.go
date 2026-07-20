@@ -141,11 +141,19 @@ const (
 	// energy lives in its coarsest octaves — 47% at a period of 7.7 columns, 74% at 3.8
 	// columns or wider — so a gate on it brightens a *region* four to eight cells
 	// across, and a brightened region reads as a brighter arm rather than as a knot.
-	// Measured against the term switched off, only 38% of such a cell's brightening
-	// survives subtracting its own eight neighbours: the blob's skirt lifts the very
-	// background it would have to stand above. That is why the re-art round's brighter,
-	// lower-threshold turbulence knots did not stud the arms and why turning their gain
-	// up could not have — the term was never capable of a cell-scale feature.
+	// Measured against the term switched off, only 40% of the brightest decile of such
+	// brightenings survives subtracting its own eight neighbours (27.6% across every
+	// cell the term brightens at all): the blob's skirt lifts the very background it
+	// would have to stand above.
+	//
+	// Gain cannot buy that back economically, though it is worth being exact about
+	// what "cannot" means here, because the obvious reading is false. Swept on the old
+	// term, arm beads per 1000 lit go 13.1 / 32.2 / 50.8 / 70.4 / 84.7 at galKnotAmp
+	// 0.85 / 2 / 4 / 8 / 16 — so a big enough gain does clear this file's own guard
+	// (TestSplashGalaxyArmsCarryKnots floors at 40). It buys it by blowing the arms
+	// out: arm clipping rises 0.07% → 1.90% → 6.36% across that sweep, against 118.5
+	// beads at 1.50% from the lattice below. Four times the gain to reach half the
+	// beads at worse clipping is the reason to change the term rather than tune it.
 	//
 	// galKnotFreq is the lattice's frequency in SCREEN cells, not in-plane ones. The
 	// in-plane axes are anisotropic by cellAspect/cos(galInc) = 2.17, so a frequency

@@ -79,10 +79,20 @@ with the pre-1.0 caveats described in
   headroom one. The knots were gated on `splashGalaxyTurbulence`, an fBm carrying 47%
   of its energy at a period of 7.7 columns and 74% at 3.8 columns or wider, so the term
   brightened a *region* four to eight cells across — and a brightened region reads as a
-  brighter arm, not as a knot. Measured against the term switched off, only **38%** of
-  such a cell's brightening survived subtracting its own eight neighbours: the blob's
-  own skirt lifted the background it had to stand above. No amount of `galKnotAmp`
-  could have fixed that, because the term was never capable of a cell-scale feature.
+  brighter arm, not as a knot. Measured against the term switched off, only **40%** of
+  the brightest decile of such brightenings survived subtracting its own eight
+  neighbours (27.6% across every cell the term brightened at all): the blob's own skirt
+  lifted the background it had to stand above.
+
+  A bigger `galKnotAmp` could only buy that back by blowing the arms out. Swept on the
+  old term, arm beads per 1000 lit go `13.1 → 32.2 → 50.8 → 70.4 → 84.7` at
+  `galKnotAmp 0.85 / 2 / 4 / 8 / 16`, so gain alone does eventually clear this PR's own
+  guard (`TestSplashGalaxyArmsCarryKnots` floors at 40) — the flat "no amount of gain
+  could have fixed it" an earlier draft of this entry claimed is false. What it costs
+  is the field: arm clipping rises `0.07% → 1.90% → 6.36%` across that sweep, against
+  **118.5** beads at **1.50%** clipping from the lattice below. Four times the gain for
+  half the beads at worse clipping is the case for changing the term rather than
+  tuning it.
 
   So the knots now ride their own high-frequency lattice (`galKnotFreq 0.9`,
   `galKnotPeak 0.5`, `galKnotAmp 0.85 → 2.0`), sampled in **screen cells** rather than
