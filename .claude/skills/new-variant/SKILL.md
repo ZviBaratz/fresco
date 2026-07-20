@@ -311,12 +311,27 @@ transcript of current behaviour.
 ### Inherit no claim you have not measured
 
 A retune is where false rationale surfaces, because you are the first person to
-re-examine it. Two are now confirmed false by measurement: rain's L\* cascade
-above, and galaxy's "distinct bright beads strung along filamentary arms" — the
-knots are real but land at the core and the outskirts, and the arm annulus, where
-the claim puts them, has the *lowest* bead density in the field. One is still
-disputed: tunnel's "the black core stays ~18% of the radius" (`tunnel.go`), flagged
-by a retuner who could not reproduce it.
+re-examine it. All four re-art PRs have now been audited. Two claims are confirmed
+false by measurement: rain's L\* cascade above, and galaxy's "distinct bright beads
+strung along filamentary arms" — the knots are real but land at the core and the
+outskirts, and the arm annulus, where the claim puts them, has the *lowest* bead
+density in the field. One was stale: ripple's closed form, below.
+
+**And one was right.** Tunnel's "the black core stays ~18% of the radius" was
+flagged as unreproducible and holds exactly: the fog's half-lit radius is
+`0.5*0.3125/(tunFogGain-0.5)` = 18.4% of `maxD`, scale-invariant by construction
+and confirmed on rendered frames at four pane sizes. It read as wrong because
+`tunFogA`'s own comment says half-lit sits at `r == A` — true of the *ungained*
+hyperbola, and 31.25% rather than 18.4% once the gain applies. Two constants, 180
+lines apart, each correct, and following the nearer one lands you on the wrong
+number.
+
+So a claim that will not reproduce is not yet a false claim. It is equally often a
+**reproducibility trap**: right figure, path to it documented somewhere that leads
+elsewhere. The fix is not to correct the number but to put the derivation where the
+claim is, so the next reader can check it in place. Verify before you overwrite —
+the cost of "correcting" a figure that was right is a real regression dressed as
+diligence.
 
 Note how the galaxy claim was settled, because a taste word looks unfalsifiable
 until you pick the comparison. "Studded" is not measurable; **the same field with
