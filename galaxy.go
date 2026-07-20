@@ -118,15 +118,27 @@ const (
 	// over into a knot, and how bright.
 	//
 	// The re-art round pushed all three up together — galTurbAmp 0.62→0.72, galKnotThr
-	// 0.68→0.63, galKnotAmp 0.70→0.85 — so the arms read as *studded and filamentary*
-	// rather than softly grainy: the lower threshold lets more of the field tip into
-	// knots, and the brighter gain makes each a distinct bead the way a real spiral's
-	// star-forming regions string along its arms. It stays additive-on-peaks (the lows
+	// 0.68→0.63, galKnotAmp 0.70→0.85 — adding grain and lifting the brightest
+	// turbulence peaks into local highlights. It stays additive-on-peaks (the lows
 	// never dim the arm), so the extra contrast opens no holes — the bright core still
 	// outshines the disk and the azimuthal arm/lane swing still clears its floor, both
-	// pinned in galaxy_test.go. Settled by rendering the disk at 96×30 and 240×60 and
-	// looking; paired with the faster galRotSpd, the knots now visibly light along the
-	// arms as the density wave sweeps through the static field.
+	// pinned in galaxy_test.go.
+	//
+	// It does NOT make the arms studded, which that round's notes claimed. Measured
+	// against galKnotAmp = 0: the knots do produce 12x the local maxima (73 against 6
+	// over three frames, at >=8 L* above their neighbours), but per 1000 lit cells the
+	// arm annulus carries 0.0 and 3.1 of them against 14.9 at the core and 12.3 in the
+	// outskirts — the lowest density in the field — and in the glyph-density channel
+	// they change nothing measurable at any radius (mean glyph weight 9.24 against 9.22
+	// in the arms).
+	//
+	// The reason is saturation, and it is the thing to fix rather than to tune around:
+	// the arms already sit at 8.4-9.2 of 11 on the density ramp, so `knot` — which is
+	// additive on an `arm` that is already near the top — clips there instead of
+	// studding. A knot lands only where the field has headroom, which is exactly the
+	// core and the faint outskirts, where a star-forming region has no business being.
+	// Studding the arms wants headroom in the arm value or a radial gate, not a bigger
+	// galKnotAmp.
 	//
 	// It is deliberately fixed in screen space rather than turned with the disk: the
 	// arms sweep *through* a static field, so its fine detail never moves and so can
