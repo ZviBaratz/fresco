@@ -55,6 +55,25 @@ with the pre-1.0 caveats described in
   helper is called at a pane distinct from its other caller, so `unparam` stays quiet
   without a nolint.
 
+- **`tunnel_figures_test.go` makes the tunnel's fog geometry executable**, the third
+  application of the convention. The tunnel already carries a thorough invariant
+  suite, but its one quantitative geometry claim — how deep the fog's black core
+  reaches — lived only in prose. The test pins it from both sides: the **analytic**
+  half-lit radius the shipped fog constants imply (`0.5·(tunFogA/tunRefD)/(tunFogGain −
+  0.5) = 18.4%` of maxD, so it fails the moment `tunFogA`, `tunRefD` or `tunFogGain`
+  drift under the quoted figure), and the **rendered** half-peak crossing of the
+  radial luminance profile (`≈15%` of maxD), asserted to be the *same curve across
+  96×30 / 160×44 / 240×60 / 300×80* — the tunnel's defining scale invariance — and to
+  sit inside the analytic 18.4%. Within ±5% (reusing `requireFigure`), passing on
+  `main` and failing on a `tunFogGain` tweak. Measuring it corrected a stale prose
+  figure: the profile crosses at `≈15%` (13.9–15.4%), not the `16%` the comment
+  claimed, so tunnel.go and the test now agree. It does **not** assert the
+  ring-spacing product — tunnel.go quotes a good value of `400` against the shipped
+  `tunDepthK·tunFreqU = 70`, a genuinely stale figure, but rendered ring *spatial
+  frequency* has no single value to pin (it varies as r² by design), so the
+  discrepancy is surfaced here rather than tested. One new file plus the two prose
+  fixes; no rendered-byte change.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed
