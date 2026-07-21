@@ -39,8 +39,13 @@ archives:
 checksum:
   name_template: checksums.txt
 
-changelog:
-  disable: true # release notes come from CHANGELOG.md via --release-notes, not git log
+# The release body comes from the tag's CHANGELOG.md section, which the release
+# workflow extracts and passes via `--release-notes`. Do NOT set
+# `changelog.disable: true`: GoReleaser reads the --release-notes file *inside*
+# the changelog pipe, so disabling it silently drops the notes and publishes an
+# EMPTY release body (this bit v1.3.0). With the changelog left enabled,
+# --release-notes wins at release time; snapshot/manual builds without the flag
+# just fall back to a harmless git-log changelog.
 
 release:
   prerelease: auto # a -rc / -beta tag publishes as a GitHub pre-release
