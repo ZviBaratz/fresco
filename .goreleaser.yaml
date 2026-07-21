@@ -17,7 +17,9 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X main.version={{ .Version }}
+      # {{ .Tag }} keeps the leading `v` so a prebuilt binary reports the same
+      # string as `go install ...@vX.Y.Z` (the debug.BuildInfo fallback).
+      - -s -w -X main.version={{ .Tag }}
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
