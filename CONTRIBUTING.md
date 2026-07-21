@@ -15,7 +15,7 @@ fresco requires **Go 1.25+** and has no build tooling beyond the Go toolchain.
 git clone https://github.com/ZviBaratz/fresco
 cd fresco
 go test ./...        # run the suite
-go run ./cmd/fresco-demo    # watch it move
+go run ./cmd/fresco    # watch it move
 ```
 
 ## Before you open a PR
@@ -60,7 +60,7 @@ depends on the ambient terminal.
 | `shade.go` | Pass 2: turning a raw field value into a glyph + color (`splashShade`, `shadeAt`). |
 | `lut.go` | The baked gradient look-up table (per palette + color profile). |
 | `rain.go`, `tunnel.go`, `ripple.go`, `galaxy.go` | The individual field generators. |
-| `cmd/fresco-demo` | The runnable demo that cycles every variant. |
+| `cmd/fresco` | The screensaver CLI: the impure shell (terminal size, clock, signals, keys, teardown) around the pure engine, split into a testable core and a thin driver. |
 
 ## Versioning & releases
 
