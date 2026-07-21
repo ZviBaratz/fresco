@@ -1,0 +1,13 @@
+# Codecov configuration for fresco.
+#
+# The coverage metric tracks the pure library — the snapshot-tested engine whose
+# high coverage is a real quality signal worth gating on. cmd/fresco is the impure
+# shell around it: raw-terminal syscalls, the frame clock, signals, and main/os.Exit.
+# Its testable core (flag/profile/palette resolution, the variant schedule, frame
+# composition, the teardown stack, the select loop) is unit-tested through a fake
+# Console, but the rest is irreducibly untestable wiring that a coverage percentage
+# would only misrepresent. Excluding cmd/ keeps the library's coverage gate strict
+# and the badge representative of the library, rather than waiving a blended number
+# for the whole module — the tests still run and guard behaviour regardless.
+ignore:
+  - "cmd/**"

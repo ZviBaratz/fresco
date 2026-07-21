@@ -11,6 +11,25 @@ with the pre-1.0 caveats described in
 
 ### Added
 
+- **A runnable `fresco` screensaver CLI (`cmd/fresco`).** fresco is now directly
+  runnable, not only importable: `go install github.com/ZviBaratz/fresco/cmd/fresco@latest`
+  builds a full-screen terminal screensaver around the pure `Render` engine. It
+  auto-sizes to the terminal and re-renders on resize (SIGWINCH on Unix, a size
+  poll where there is none), animates in the alternate screen so scrollback is
+  preserved, and takes single-key controls (`q`/Ctrl-C quit, space next variant,
+  `p` pause). The terminal is restored on **every** exit path — normal end,
+  Ctrl-C/SIGTERM, error, and panic — through a LIFO teardown stack behind a
+  deferred restore, so the screensaver can't wedge the terminal. Flags cover the
+  variant (a name or `cycle`/`all`), palette (presets or five custom hex anchors,
+  validated through `Palette.Validate`), fps, seconds-per-variant, focal-row,
+  lum-range, colour profile, duration, `--size`, `--once`, and `--list`;
+  `NO_COLOR`/`FORCE_COLOR` are honoured, and a non-TTY stdout degrades to a single
+  frame so a pipe or CI never hangs on a size query or spews control codes. The
+  `fresco` package gains **no new dependency and no impurity** — all terminal I/O,
+  the clock, and signals live under `cmd/`, and the logic is factored into a pure,
+  TTY-free-testable core (flag/profile resolution, frame composition, the variant
+  schedule) plus a thin impure driver exercised through a fake `Console`.
+
 - **`galaxy_figures_test.go` makes the galaxy's shipped figures executable.** Every
   quantitative "because" in the galaxy's comments is backed by a measurement, but
   those measurements lived only in prose, which rots — the #60/#61 work alone quoted
@@ -125,6 +144,16 @@ with the pre-1.0 caveats described in
   at the mip-quieted centre and carries out into the pane (already pinned by
   `TestSplashTunnelMipQuietsTheVanishingPoint`), the opposite of the "coloured haze"
   the old comment feared. Comment only; no code or rendered-byte change.
+
+### Removed
+
+- **`cmd/fresco-demo` is retired**, superseded by the new `cmd/fresco` CLI above
+  (#72). The old command was a fixed-size demo loop wired for the vhs recording;
+  the vhs demo tape now builds `cmd/fresco`, which subsumes and surpasses it.
+  **Breaking:** `go install github.com/ZviBaratz/fresco/cmd/fresco-demo` (shipped
+  through v1.0.0 and v1.1.0) no longer resolves — install
+  `github.com/ZviBaratz/fresco/cmd/fresco` instead, which auto-sizes, animates in
+  the alternate screen, and takes flags for the size and duration the demo hard-coded.
 
 ## [1.1.0] - 2026-07-20
 

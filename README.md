@@ -22,7 +22,7 @@ frame := fresco.Render(width, height, tick, fresco.Options{
 })
 ```
 
-<p align="center"><em>Run <code>go run github.com/ZviBaratz/fresco/cmd/fresco-demo@latest</code> to see it move.</em></p>
+<p align="center"><em>Run <code>go run github.com/ZviBaratz/fresco/cmd/fresco@latest</code> to see it move — see <a href="#run-it">Run it</a>.</em></p>
 
 ## What it is (and isn't)
 
@@ -40,6 +40,33 @@ backdrops. That's a different thing from the neighbours:
 Everything is deterministic and pure over its inputs — the same
 `(width, height, frame, Options)` always yields the same bytes — so it is
 snapshot-testable and trivial to drive from any render loop.
+
+## Run it
+
+fresco is directly runnable, not only importable — it ships a screensaver binary
+that fills the terminal with the field and animates it full-screen:
+
+```sh
+go install github.com/ZviBaratz/fresco/cmd/fresco@latest
+fresco                      # cycle the whole roster, auto-sized to your terminal
+```
+
+Or without installing: `go run github.com/ZviBaratz/fresco/cmd/fresco@latest`.
+
+It animates in the alternate screen and restores your screen, scrollback, and
+cursor on exit — including on Ctrl-C. A few things to try:
+
+```sh
+fresco --variant ripple           # pin one field
+fresco --palette nord --fps 60    # a preset palette, faster
+fresco --duration 30s             # run for half a minute, then exit
+fresco --list                     # list variants and palettes
+fresco --once > frame.txt         # capture a single frame (also what a pipe/CI gets)
+```
+
+**Keys:** `q` or `Ctrl-C` quit · `space` next variant · `p` pause. `NO_COLOR` is
+honoured, and off a TTY (a pipe, a redirect, CI) fresco renders one frame and
+exits instead of animating. Run `fresco -h` for the full flag list.
 
 ## Install
 
@@ -87,8 +114,9 @@ func main() {
 }
 ```
 
-See [`cmd/fresco-demo`](cmd/fresco-demo) for a version that cycles every variant
-and restores your cursor on exit.
+See [`cmd/fresco`](cmd/fresco) for the full screensaver CLI built on this loop —
+auto-sizing, resize handling, single-key controls, and a terminal restore on
+every exit path.
 
 ## API
 
