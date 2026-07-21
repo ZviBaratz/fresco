@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ZviBaratz/fresco"
@@ -70,6 +71,18 @@ func TestResolveConfigVariantAllAliasesCycle(t *testing.T) {
 func TestResolveConfigUnknownVariant(t *testing.T) {
 	if _, err := resolveConfig([]string{"--variant", "nope"}, noEnv, true, fresco.TrueColor); err == nil {
 		t.Fatal("want an error for an unknown variant name")
+	}
+}
+
+// --version short-circuits with the errVersion sentinel before any other
+// validation, so main can print the version and exit; it wins even alongside an
+// otherwise-invalid flag.
+func TestResolveConfigVersion(t *testing.T) {
+	if _, err := resolveConfig([]string{"--version"}, noEnv, true, fresco.TrueColor); !errors.Is(err, errVersion) {
+		t.Fatalf("--version should return errVersion, got %v", err)
+	}
+	if _, err := resolveConfig([]string{"--version", "--fps", "0"}, noEnv, true, fresco.TrueColor); !errors.Is(err, errVersion) {
+		t.Fatalf("--version should win over a bad --fps, got %v", err)
 	}
 }
 

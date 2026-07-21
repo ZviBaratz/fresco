@@ -53,6 +53,9 @@ fresco                      # cycle the whole roster, auto-sized to your termina
 
 Or without installing: `go run github.com/ZviBaratz/fresco/cmd/fresco@latest`.
 
+No Go toolchain? Grab a prebuilt binary for your OS from the
+[Releases](https://github.com/ZviBaratz/fresco/releases) page.
+
 It animates in the alternate screen and restores your screen, scrollback, and
 cursor on exit — including on Ctrl-C. A few things to try:
 

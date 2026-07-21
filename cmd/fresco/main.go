@@ -27,6 +27,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strings"
 	"syscall"
 
@@ -35,6 +36,12 @@ import (
 	"github.com/muesli/termenv"
 )
 
+// version is the binary's build version. GoReleaser injects the release tag via
+// -ldflags "-X main.version=..."; a plain `go build` leaves it "dev", and
+// resolveVersion then falls back to the module version the Go toolchain embeds
+// (so `go install ...@v1.2.0` still reports v1.2.0).
+var version = "dev"
+
 func main() {
 	c := newOSConsole()
 
@@ -42,6 +49,11 @@ func main() {
 	if err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			usage(os.Stdout)
+			return // exit 0
+		}
+		if errors.Is(err, errVersion) {
+			info, ok := debug.ReadBuildInfo()
+			_, _ = fmt.Fprintln(os.Stdout, "fresco "+resolveVersion(version, info, ok))
 			return // exit 0
 		}
 		fail(err)
@@ -59,6 +71,20 @@ func main() {
 		fail(err)
 		os.Exit(1)
 	}
+}
+
+// resolveVersion chooses the most specific build version available: an
+// ldflags-injected value wins; else the module version embedded by the Go
+// toolchain (from `go install ...@version`); else it stays "dev". It is pure so
+// the choice is unit-tested without a build.
+func resolveVersion(ldflags string, info *debug.BuildInfo, ok bool) string {
+	if ldflags != "" && ldflags != "dev" {
+		return ldflags
+	}
+	if ok && info != nil && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return info.Main.Version
+	}
+	return ldflags
 }
 
 // fail prints an error to stderr under a single "fresco:" prefix. Some errors
@@ -116,6 +142,7 @@ Flags:
   --size WxH              override auto-size, e.g. 100x30 (default: detect)
   --once                  render a single frame to stdout and exit
   --list                  list the variants and palettes, then exit
+  --version               print the fresco version and exit
 
 Keys (interactive, on a TTY):
   q, Ctrl-C  quit      space  next variant      p  pause

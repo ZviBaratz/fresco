@@ -91,9 +91,16 @@ SemVer compatibility guarantee.
    the foot of the file.
 2. Land that as a PR (e.g. `docs: release vX.Y.Z`) and merge to `main`.
 3. Tag and push: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
-4. Publish the GitHub Release from the tag, using that version's changelog section
-   as the notes:
-   `gh release create vX.Y.Z --title vX.Y.Z --notes-file <that-section>`.
+4. Pushing the tag triggers the **Release** workflow
+   ([`.github/workflows/release.yml`](.github/workflows/release.yml)): GoReleaser
+   builds the `cmd/fresco` binaries for linux/darwin/windows × amd64/arm64,
+   attaches the archives (each bundling `LICENSE`, `README.md`, and `CHANGELOG.md`)
+   and a `checksums.txt`, and publishes the GitHub Release for the tag with its
+   notes taken from that version's `CHANGELOG.md` section. There is **no** manual
+   `gh release create` — watch the run under **Actions** and confirm the release
+   and its assets. GoReleaser errors if a release for the tag already exists, so
+   never re-tag or re-push a published version; cut a new patch/minor instead. The
+   published version is baked into the binary (`fresco --version`).
 
 ## The module path
 

@@ -1,5 +1,6 @@
 # Binaries and build output
 /bin/
+/dist/ # GoReleaser output (see .goreleaser.yaml)
 *.exe
 *.out
 

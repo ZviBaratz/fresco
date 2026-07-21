@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -11,6 +12,11 @@ import (
 
 	"github.com/ZviBaratz/fresco"
 )
+
+// errVersion is a sentinel like flag.ErrHelp: resolveConfig returns it when
+// --version is set, so main prints the (impure, ldflags-injected) version and
+// exits 0 without the pure resolver ever touching the version string.
+var errVersion = errors.New("version requested")
 
 // maxFPS bounds --fps. A terminal gains nothing past a few tens of frames a
 // second, and this keeps a typo (e.g. --fps 100000000, a ~10ns ticker) from
@@ -57,10 +63,14 @@ func resolveConfig(args []string, getenv func(string) string, isTTY bool, detect
 		sizeFlag = fs.String("size", "", "override auto-size, e.g. 100x30 (default: detect from the terminal)")
 		once     = fs.Bool("once", false, "render a single frame to stdout and exit")
 		list     = fs.Bool("list", false, "list the variants and palettes, then exit")
+		showVer  = fs.Bool("version", false, "print the fresco version and exit")
 	)
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err
+	}
+	if *showVer {
+		return config{}, errVersion
 	}
 
 	cfg := config{
