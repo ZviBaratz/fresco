@@ -30,6 +30,31 @@ with the pre-1.0 caveats described in
   nolint on two shared test helpers (now called from a second file) is the only
   edit to existing code.
 
+- **`rain_figures_test.go` makes the rain's shipped figures executable**, the second
+  application of that convention — and the one it earns hardest, since rain is the
+  field whose figure already rotted *on screen*: the layer cascade shipped pinned in
+  raw field units, upstream of the `smoothstep` contrast curve, and rendered `3.9 L*`
+  apart against the `16.2` its comment claimed (fixed in `[1.1.0]`). The new test
+  measures the cascade on the side of the curve the eye sees, two ways: it pins the
+  layer head cascade (`81.9 / 65.7 / 47.4 / 29.1`, separations `16.2 / 18.3 / 18.3`)
+  and the per-layer head-outshines-tail steps (`28.2 / 36.6 / 30.4 / 18.1`) through
+  `rainScreenStopFor` — the real `smoothstep` and stop quantization applied to each
+  layer's shipped `bright`, read off the real ramp — and it anchors those with two
+  rendered-byte figures: the lit fraction at rain's quoted 96×30 pane (`27.0%`,
+  guarding `rainDensity`) and the rendered proof that the mid layer's heads land in
+  the L\* 60–69 band, which must dominate the 70–79 band they vacated. All within ±5%
+  (reusing the galaxy file's `requireFigure`), passing on `main` and failing on the
+  pre-fix `rainLayers` mid `bright 0.64 → 0.72`, which inverts the rendered bands
+  exactly as `[1.1.0]` describes. It does **not** assert the one-off histogram counts
+  (`239 → 53`, `50 → 193`), which do not reproduce without the demonstration's
+  unrecorded pane/frame span — their robust *relation* is the test, the counts stay
+  prose — and there is no lumRange A/B, since `lumRange` is a dead lever for rain
+  (pinned at `1`). SKILL.md §7 gains the rain refinements (post-curve + rendered-byte
+  anchor; demonstration-count-vs-relation; the `unparam` dodge). No rendered-byte
+  change, and this time no edit to existing code at all — the shared `rainStopGrid`
+  helper is called at a pane distinct from its other caller, so `unparam` stays quiet
+  without a nolint.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed

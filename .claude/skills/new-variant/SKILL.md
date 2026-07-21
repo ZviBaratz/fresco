@@ -316,6 +316,21 @@ The lumRange A/B, by contrast, *is* in the test: `Options.LumRange` (`withLumRan
 renders the compiled field at each value, so it is a held-fixed A/B on the real
 renderer, not a const-variation.
 
+`rain_figures_test.go` is the second worked example, and it sharpens three points.
+First, when a figure lives *after* the contrast curve — rain's layer cascade is
+measured post-`smoothstep`, the side the eye sees, because the raw-units version is
+what shipped false on screen (#50) — measure it on that side and anchor it with a
+second test that reads the *rendered bytes*: the ramp-level cascade goes through
+`rainScreenStopFor` (a reconstruction of Pass 2), so a rendered-output band check
+keeps that reconstruction honest — if the real quantization ever drifts from it, the
+byte-level test fails where the reconstruction cannot. Second, the twin-exclusion
+rule has a softer sibling: a **config-specific demonstration count** (rain's
+`239 → 53` histogram, measured at a pane/frame span the prose never recorded) stays
+prose, but the robust **relation** it illustrates — the vacated band stays dominated
+— becomes the test. Third, reuse an existing `(w, h)` measurement helper from the
+new file at a *different* constant pane than its other callers and `unparam` stays
+quiet on its own — no `nolint`, no edit to existing code, unlike the galaxy file.
+
 ### Assume the guard is blind until you re-derive it
 
 A bespoke invariant test is written during authoring, by someone who had not yet
