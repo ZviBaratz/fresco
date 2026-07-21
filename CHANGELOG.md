@@ -9,6 +9,27 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Added
+
+- **`galaxy_figures_test.go` makes the galaxy's shipped figures executable.** Every
+  quantitative "because" in the galaxy's comments is backed by a measurement, but
+  those measurements lived only in prose, which rots — the #60/#61 work alone quoted
+  three figures that had already gone stale (`118.5 → 135.5`, the ruler "odd → even",
+  "~3% → ~0.7%"). The new test asserts the shipped figures the *compiled* renderer
+  produces — whole-pane/arm clipping (`1.36% / 0.92%`), nucleus glyph contrast
+  (`0.430`), core/arm/outskirts bead density (`58.4 / 135.5 / 67.3`), core/mid
+  colour-stop density (`11.46 / 6.13`), and the lumRange `0.75 → 0.60` arm-annulus
+  A/B (`93.1 → 135.5`) — each within ±5%, measured through the existing helpers and
+  the public `Options.LumRange` override, with **no twin of the renderer's
+  internals**. It passes on `main` and fails on a deliberate `galBulgeAmp` tweak;
+  each assertion names the prose that quotes it. It does not assert the ridge/gas
+  ratio (`243.8 / 26.8`), which is defined on the raw `arm` value the point function
+  never returns and so cannot be measured without such a twin — that stays a
+  tuning-probe finding in prose. SKILL.md §7 gains the tuning-probe (throwaway) vs
+  figures-test (permanent) distinction. No rendered-byte change; an `unparam`
+  nolint on two shared test helpers (now called from a second file) is the only
+  edit to existing code.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed
