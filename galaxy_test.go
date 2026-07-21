@@ -268,7 +268,7 @@ func TestSplashGalaxyRendersABrightCoreAndDimmingArms(t *testing.T) {
 // two, so a claim about density asserted on luminance stops is measuring the other
 // channel. Rendered at NoColor so the bytes are exactly the glyphs, with no SGR to
 // step over; a cell's glyph does not depend on the colour profile.
-func galaxyGlyphGrid(t *testing.T, w, h, frame int, pal Palette) [][]int {
+func galaxyGlyphGrid(t *testing.T, w, h, frame int, pal Palette) [][]int { //nolint:unparam // every galaxy figure/band test renders the one canonical 240×60 pane; w/h stay params for a general, readable helper
 	t.Helper()
 	withColorProfile(t, termenv.Ascii)
 	out := renderSplashField(w, h, frame, pal, centeredFocalRow(h), Galaxy)
@@ -296,7 +296,7 @@ func galaxyGlyphGrid(t *testing.T, w, h, frame int, pal Palette) [][]int {
 // see a sparse minority of bright cells by construction, which is how the previous
 // round's "mean glyph weight 9.24 against 9.22" concluded that a knot term working
 // on 1.7% of cells did nothing.
-func galaxyBeadDensity(grid [][]int, w, h int, rho func(col, row int) float64, lo, hi float64) float64 {
+func galaxyBeadDensity(grid [][]int, w, h int, rho func(col, row int) float64, lo, hi float64) float64 { //nolint:unparam // every galaxy figure/band test renders the one canonical 240×60 pane; w/h stay params for a general, readable helper
 	beads, lit := 0, 0
 	for row := 1; row < h-1; row++ {
 		for col := 1; col < w-1; col++ {

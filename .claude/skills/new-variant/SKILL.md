@@ -282,6 +282,40 @@ commit. In this worktree an untracked file is auto-staged, so deleting it from
 disk is not enough — `git rm -f <file>` clears both the index and the working
 tree. Confirm `git status --porcelain` is empty.
 
+### A shipped figure is a test, not a comment
+
+The probe above is throwaway because it varies a `const` to *choose* a value — it
+dies with the sweep, correctly. But the figure it settles on, the one you then
+quote in a doc comment, CHANGELOG or PR, is a different thing: a claim about the
+compiled renderer that gets cited and rots silently as the field moves under it.
+The #60/#61 work quoted three figures that were already stale (`118.5 → 135.5`, the
+ruler "odd → even", "~3% → ~0.7%") and rebuilt a self-checking probe #59 had
+already `git rm`'d — the same harness measured twice. A shipped figure that gets
+cited should be a **kept test**, not only a sentence.
+
+So draw the line:
+
+- **Tuning probe — throwaway.** Varies a `const` across a sweep to pick a value,
+  re-derives internals if it must, `git rm -f` before the commit.
+- **Figures test — permanent.** Asserts the figure the compiled renderer *actually
+  produces*, measured through the shipped code and the existing measurement helpers
+  — **no twin of the renderer's internals, no `const`-variation.** A red build means
+  a shipped figure moved; its message names the prose that quotes it so you update
+  both together.
+
+`galaxy_figures_test.go` is the worked example. It pins the clipping,
+nucleus-contrast, bead, stop-density and lumRange-A/B figures within ±5% (loose
+enough for a float reassociation, tight enough that structural drift fails), passes
+on `main`, and fails on a deliberate `galBulgeAmp` tweak. It deliberately does
+**not** assert the ridge/gas ratio (`243.8 / 26.8`): that figure is defined on the
+raw `arm` value *before the turbulence lift*, which the point function never
+returns, so measuring it would mean copying the arm sub-computation into the test —
+a twin that drifts from the renderer, the exact rot the file exists to prevent. **A
+figure you cannot measure without a twin stays a tuning-probe finding in prose.**
+The lumRange A/B, by contrast, *is* in the test: `Options.LumRange` (`withLumRange`)
+renders the compiled field at each value, so it is a held-fixed A/B on the real
+renderer, not a const-variation.
+
 ### Assume the guard is blind until you re-derive it
 
 A bespoke invariant test is written during authoring, by someone who had not yet
