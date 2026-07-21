@@ -9,6 +9,16 @@ with the pre-1.0 caveats described in
 
 ## [Unreleased]
 
+### Added
+
+- **Prebuilt `fresco` binaries on every tagged release.** A `.goreleaser.yaml` and
+  a tag-triggered `Release` workflow build `cmd/fresco` for linux/darwin/windows ×
+  amd64/arm64 on each `vX.Y.Z` push, publishing archives (each with `LICENSE`,
+  `README.md`, and `CHANGELOG.md`), a `checksums.txt`, and a GitHub Release whose
+  notes come from this file's matching section — so fresco is installable without a
+  Go toolchain. The binary also gains a `--version` flag backed by an
+  ldflags-injected `main.version`.
+
 ## [1.2.0] - 2026-07-21
 
 ### Added
