@@ -74,6 +74,25 @@ with the pre-1.0 caveats described in
   discrepancy is surfaced here rather than tested. One new file plus the two prose
   fixes; no rendered-byte change.
 
+- **`ripple_figures_test.go` makes the ripple's packet-shape figures executable**, the
+  fourth application of the convention — and ripple is the field that proves why the
+  gap matters: its row-pitch capture comment carried a stale `87.3%` for three PRs
+  after `rippleCyc` moved `1.5 → 1.8`, because the figure was folded to a literal
+  `cos(0.15pi)` that outlived the constant it came from, and the 75% floor guarding it
+  never noticed. The new test pins the shipped packet shape on the compiled
+  `rippleDropWave`: the worst row-pitch capture (`82.8%`, the anti-blink margin), the
+  packet trough as a share of its crest (`54%` at the shipped cyc, only floored at 30%
+  before) and where that trough sits (`x = 0.48`), the ring-open fraction
+  (`rippleHueOpen = 0.38`) and a lone crest's amplitude (`0.65 = rippleAmp`, asserted
+  under the clamp so two rings adding have headroom to read as constructive). Each
+  within ±5% (reusing `requireFigure`), passing on `main` and failing on the pre-`1.8`
+  `rippleCyc 1.8 → 1.5`, which drifts the capture back to exactly the stale `87.33%`.
+  It does **not** re-run the `rippleCyc` sweep (`15/29/41/54/61%`) — that is a tuning
+  probe, so only the shipped point is pinned — nor the candidate-skip distribution
+  (`49.7 / 43.7 / 6.6%`), an internal branch statistic the point function never
+  exposes, which stays a prose measurement like galaxy's ridge/gas. One new file, no
+  edit to existing code, no rendered-byte change.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed
