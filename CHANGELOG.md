@@ -112,6 +112,20 @@ with the pre-1.0 caveats described in
   (galaxy, rain, tunnel, ripple, aurora), and SKILL.md §7 documents it as the standing
   practice for a shipped figure.
 
+### Changed
+
+- **`fresco.Tunnel`**'s ring-spacing comment (`tunDepthK`) corrected to match the
+  shipped product, resolving the discrepancy the tunnel figures test surfaced. The
+  comment quoted a good product of `400` against a bad `72`, but the shipped
+  `tunDepthK·tunFreqU` is `70` — at the "bad" end. That framing predated the octave
+  stack and the per-octave mip: `70` is the *coarsest* octave's ring spacing,
+  deliberately coarse (`tunFreqU` is low for the dead-zone reason its own comment
+  gives), and the five-octave stack plus the mip carry the rings out to the rim, not a
+  single high product. Verified before rewriting — the wall's texture variance is flat
+  at the mip-quieted centre and carries out into the pane (already pinned by
+  `TestSplashTunnelMipQuietsTheVanishingPoint`), the opposite of the "coloured haze"
+  the old comment feared. Comment only; no code or rendered-byte change.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed

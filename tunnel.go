@@ -13,17 +13,27 @@ import "math"
 // tear the seam), and a sampling-rate LOD fades the wall toward its mean near the
 // centre (|du/dr| = K/r² diverges there).
 const (
-	// tunDepthK scales depth: u = K/r. With tunFreqU it sets the only thing about
-	// this variant that has to be right — how far apart the rings land on screen.
+	// tunDepthK scales depth: u = K/r. With tunFreqU it sets how far apart the
+	// *coarsest* octave's rings land on screen — and reading that as the whole story
+	// is the mistake this comment used to make.
 	//
-	// One texture cell spans r²/(tunDepthK*tunFreqU) screen cells, so the product
-	// is the knob and the two constants are one decision. Perspective guarantees
-	// that spacing varies as r², i.e. by 10x across a pane, so no product makes
-	// rings ideal everywhere; the choice is which radius they read at. Measured at
-	// the product 72 they were legible only around r=10–30 while the pane runs to
-	// r≈90, and the outer 80% of the view — nearly all of the cells — was a single
-	// stretched texture cell, which rendered as coloured haze with no tunnel in it.
-	// At 400 the rings read from the mip boundary out to the corners.
+	// One base-octave cell spans r²/(tunDepthK*tunFreqU) screen cells, and the
+	// shipped product is 200*0.35 = 70. Perspective stretches that spacing as r²
+	// (~10x across a pane), so no single frequency can serve every radius: were the
+	// coarsest octave the whole texture, 70 would fill the outer view with one
+	// stretched cell — the coloured haze a single-frequency tuning measured near
+	// this product and tried to escape by pushing it toward 400.
+	//
+	// The five-octave stack and the per-octave mip retired that reasoning, which is
+	// why the shipped product sits at 70 rather than anywhere near 400. The octaves
+	// lay down coarse rings through to fine detail at every radius (~29 cells down to
+	// ~2 at mid-pane), and the mip fades each exactly where it outruns the grid
+	// (tunLODC, splashTunnelFBM), so legibility is the stack's job, not one product's.
+	// That frees the base octave to be coarse — tunFreqU is deliberately low for the
+	// dead-zone reason its own comment gives — while the fine octaves and the mip
+	// carry the rings out to the corners: the wall's texture is flat at the
+	// mip-quieted centre and carries out into the body of the pane, not haze at the
+	// rim (TestSplashTunnelMipQuietsTheVanishingPoint pins far variance ≫ near).
 	tunDepthK = 200.0
 	// tunUMax is the guard on the singularity at the vanishing point, and it does
 	// two jobs at once. It caps how far the texture may compress — without it,
