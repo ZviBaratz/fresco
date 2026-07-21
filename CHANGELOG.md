@@ -93,6 +93,25 @@ with the pre-1.0 caveats described in
   exposes, which stays a prose measurement like galaxy's ridge/gas. One new file, no
   edit to existing code, no rendered-byte change.
 
+- **`aurora_figures_test.go` makes the aurora's tuning figures executable**, completing
+  the roster (all five variants now guard their shipped figures). It pins the two
+  numbers aurora is actually tuned around: the **drift-trap Nyquist** figure — the
+  finest fBm octave sits at `auroraFreqX·2^(auroraOct−1) = 0.40` cycles/cell, below the
+  `0.5` limit, so no octave crawls sideways as the curtains drift (a fourth would land
+  at `0.80` and alias) — and the **fBm window placement**: measured on the compiled
+  `auroraFBM`, its median is `~0.50` and its 90th percentile `~0.67`, and the curtain
+  window must straddle the upper third (`auroraLo` just above the median, `auroraHi`
+  near the 90th percentile). Within ±5% (reusing `requireFigure`), passing on `main`
+  and failing on `auroraFreqX 0.10 → 0.15` (finest drifts to `0.60`, past Nyquist) or
+  `auroraHi 0.70 → 0.80` (off the fitted p90). Measuring corrected two stale prose
+  numbers: the fBm clusters around `0.50` (not `0.53`) and tails to `~0.79` at the 99th
+  percentile (not "near `0.82`") — aurora.go now matches. One new file plus that prose
+  fix; no rendered-byte change.
+
+  With this the executable-figures convention is applied across the whole roster
+  (galaxy, rain, tunnel, ripple, aurora), and SKILL.md §7 documents it as the standing
+  practice for a shipped figure.
+
 ## [1.1.0] - 2026-07-20
 
 ### Fixed

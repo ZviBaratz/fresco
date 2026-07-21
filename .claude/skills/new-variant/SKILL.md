@@ -331,6 +331,20 @@ prose, but the robust **relation** it illustrates — the vacated band stays dom
 new file at a *different* constant pane than its other callers and `unparam` stays
 quiet on its own — no `nolint`, no edit to existing code, unlike the galaxy file.
 
+All five variants now carry one (`galaxy`/`rain`/`tunnel`/`ripple`/`aurora_figures_test.go`),
+so a figures test is the standing expectation for a new variant, not an extra. Three
+general lessons came out of applying it across the roster. A figure lands at whatever
+level it is *defined* — a field fact on the point function (galaxy clipping), a
+ramp-level cascade through the real curve (rain), a packet shape on the compiled
+primitive (ripple), a rendered profile on the emitted bytes (tunnel), a distribution
+over the fBm (aurora) — measure it there, not always at the bytes. Pin the *reasoning*,
+not only the number: the numbers that justify a window can drift with sampling
+(aurora's fBm max), but the claim they support — auroraLo just above the median,
+auroraHi near the 90th percentile — is robust and is the real guard. And expect to
+correct prose while you go: tunnel's `16%`, aurora's `0.53`/`0.82` and ripple's stale
+`87.3%` were all found by measuring what the comment asserted. That last is the whole
+point — a figure that was only ever a sentence had never been checked.
+
 ### Assume the guard is blind until you re-derive it
 
 A bespoke invariant test is written during authoring, by someone who had not yet

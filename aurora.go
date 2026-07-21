@@ -53,10 +53,12 @@ const (
 	// auroraLo and saturates the cores above auroraHi, leaving everything below auroraLo
 	// as dark sky. This is the "weather, not a wall of glyphs" knob, and the window is
 	// deliberately fitted to the *measured* fBm distribution rather than to the [0,1]
-	// nominal range: this fBm (3 octaves, normalized) clusters around 0.53 and tops out
-	// near 0.82, so the window straddles its upper third — auroraLo just above the
-	// median so a curtain is a real band of sky and not a scatter of dots, auroraHi near
-	// the 90th percentile so the brightest filaments reach full luminance. Its width sets
+	// nominal range: this fBm (3 octaves, normalized) clusters around 0.50 and tails off
+	// to ~0.79 by its 99th percentile (a thin tail reaches ~0.94), so the window
+	// straddles its upper third — auroraLo just above the median so a curtain is a real
+	// band of sky and not a scatter of dots, auroraHi near the 90th percentile (~0.67)
+	// so the brightest filaments reach full luminance. Both figures are asserted in
+	// aurora_figures_test.go. Its width sets
 	// the curtain-edge softness: kept broad enough that the edge carries no more high
 	// spatial frequency than the drift can move without crawling (see auroraFBM), so no
 	// separate sharpening power is wanted.
