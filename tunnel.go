@@ -247,10 +247,11 @@ func splashTunnelFBM(u, v, mipBase float64) float64 {
 //
 // so the half-lit radius is 18.4% of maxD, and stays there at any pane size. The
 // gain is what moves it: without it, half-lit would sit at rho = 0.3125. Measured on
-// rendered frames at 96x30, 160x44, 240x60 and 300x80, the radial luminance profile
-// is the same curve at all four and crosses half its peak at 16% of the radius —
-// just inside the 18.4%, which is the contrast curve, the quantization and the edge
-// vignette taking their cut.
+// rendered frames at 96x30, 160x44, 240x60 and 300x80, the emitted luminance stops
+// are the same curve at all four and cross half their peak at ≈15% of the radius
+// (13.9–15.4%) — just inside the 18.4%, which is the contrast curve, the
+// quantization and the edge vignette taking their cut. Both figures are asserted in
+// tunnel_figures_test.go.
 //
 // tunUMax deliberately does not scale — u = K/r with K ∝ maxD and r ∝ maxD makes
 // u scale-invariant already. Nor does the lod: Nyquist is an absolute fact about
