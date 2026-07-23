@@ -67,7 +67,7 @@ jobs:
       # the token is a repo secret (uploads are best-effort until it is set).
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux' && matrix.go == '1.26.x'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
